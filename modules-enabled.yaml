@@ -1,0 +1,8 @@
+# Copy to project repo root as modules-enabled.yaml.
+# Orchestrator reads this at bootstrap to learn about extra stages/gates.
+# Modules are enabled/disabled ONLY by human decision (docs/05 §3).
+framework_version: 1.0.0
+enabled: []
+# enabled:
+#   - name: deployment
+#     version: 1.0.0

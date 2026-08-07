@@ -1,0 +1,52 @@
+# ============================================================
+# PROJECT PROFILE — the ONLY place project-specific facts live.
+# Agents read this before running any build/test/lint command. (docs/04)
+# ============================================================
+
+project:
+  name: "CMS AI Pilot"
+  jira_key: "SDLCAIP1"
+  repo: "github.com/Boris-ECV/CMS-AIPilot"
+  default_branch: main
+  description: >
+    具備前後台的 CMS 系統。後台提供網頁介面編輯文章,每次編輯發布後產生全靜態
+    HTML 檔案並上傳覆蓋 AWS S3 上的舊檔;前台完全是靜態檔案,不拉資料庫內容。
+
+stack:
+  language: "python 3.12"
+  frameworks: [fastapi, mangum, react, vite]
+  database: "DynamoDB"
+  notes: >
+    後端 FastAPI + Mangum 跑在 AWS Lambda 上(serverless),前端 React+Vite
+    SPA 作為後台編輯介面(不對外服務,前台輸出物是靜態 HTML)。IaC 用 AWS CDK
+    (Python)。前端骨架尚未建立,將在第一個涉及後台 UI 的 Story 時建立。
+
+commands:
+  setup: "pip install -e \".[dev]\""
+  build: ""
+  test: "pytest -q"
+  lint: "ruff check ."
+  coverage: "pytest --cov=src --cov-report=term-missing -q"
+
+quality:
+  coverage_threshold: 70
+  lint_zero_tolerance: true
+
+conventions:
+  code_style: "PEP8 via ruff (see pyproject.toml [tool.ruff])"
+  commit_format: "<type>(<JIRA-KEY>): <summary>"
+  branch_format: "story/<JIRA-KEY>-<slug>"
+  test_layout: "tests/ mirrors src/ structure; tests/e2e/ holds Playwright e2e tests"
+  notes: >
+    e2e 測試用 Playwright(Python, pytest-playwright plugin)。API 測試用
+    pytest + httpx 直接測 FastAPI app。e2e 測試在前端骨架建立前先以
+    pytest.mark.skip 佔位。
+
+structure:
+  src: "src/cms_aipilot/"
+  tests: "tests/ (tests/e2e/ for Playwright)"
+  docs: "docs/ (framework docs, not product docs)"
+
+deployment:
+  environments: []
+  notes: "AWS serverless(Lambda + DynamoDB + S3 + API Gateway),IaC 用 AWS CDK(Python)。部署模組尚未啟用,v1 手動部署。"

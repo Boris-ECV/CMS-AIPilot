@@ -1,0 +1,38 @@
+# ============================================================
+# Model tier routing. Aliases (sonnet/haiku/opus) resolve to the
+# current best model of that tier in Claude Code — prefer aliases
+# over pinned IDs so the framework survives model generations.
+# ============================================================
+
+tiers:
+  premium:                # high-capability tier — RATIONED
+    model: opus           # or the best available tier alias at execution time
+    usage_policy: |
+      Only via the escalation procedure (docs/02 §7) or first-pass
+      decomposition of a complex Epic explicitly flagged by the human.
+      Every use MUST emit an "escalation_used" metrics event.
+    budget:
+      max_uses_per_week: 5    # hard cap; raise only by human decision
+  standard:
+    model: sonnet
+    usage_policy: "Default for orchestrator and all core-stage subagents."
+  economy:
+    model: haiku
+    usage_policy: "All routine aggregation/formatting work (reporter)."
+
+routing:
+  orchestrator: standard
+  requirements-analyst: standard
+  developer: standard
+  tester: standard
+  reviewer: standard
+  reporter: economy
+
+escalation:
+  trigger: "3 consecutive failures of the same ticket in the same stage"
+  action: |
+    1. Stop retrying. Summarize the 3 attempts + failure causes on the ticket.
+    2. Delegate a one-shot diagnosis to a premium-tier subagent
+       (spawn with model override = tiers.premium.model).
+    3. Diagnosis output: root-cause hypothesis + fix direction. NOT a rewrite.
+    4. If still failing after applying the direction -> Blocked + HUMAN-INPUT.

@@ -1,0 +1,54 @@
+# ============================================================
+# Jira project configuration spec. Used during instantiation
+# (docs/04 Phase A2) — apply manually in Jira admin or via script.
+# ============================================================
+
+issue_types:
+  - name: Epic
+  - name: Story
+  - name: Sub-task
+  - name: HUMAN-INPUT      # fallback: Task + label "human-input"
+  - name: BUG              # fallback: Bug (built-in)
+
+workflow:
+  states:
+    - Backlog
+    - Refining
+    - Awaiting Gate        # parked here while a manual gate waits for human
+    - Ready
+    - In Progress
+    - Testing
+    - In Review
+    - Done
+    - Blocked
+  transitions_note: |
+    Allow: linear flow per docs/02 §2; any state -> Blocked; Blocked -> any
+    previous state; Awaiting Gate sits between Refining->Ready (G1) and
+    In Review->Done (G2). Rejected gates return to stage start.
+
+custom_fields:
+  - name: Agent Lock
+    type: text
+  - name: Lock Timestamp
+    type: datetime
+  - name: Reopen Count
+    type: number
+  - name: Human Touch Count
+    type: number
+  - name: Stage Entered At
+    type: datetime
+
+fallback_when_no_custom_fields: |
+  Encode fields as structured comments: "[FIELD] AgentLock=orch-0708-a3f2".
+  Latest comment wins. Agents must parse comments in this mode.
+
+useful_jql:
+  ready_work:        'project = {KEY} AND status = Ready ORDER BY priority DESC, created ASC'
+  awaiting_gates:    'project = {KEY} AND status = "Awaiting Gate"'
+  blocked:           'project = {KEY} AND status = Blocked'
+  stale_locks:       'project = {KEY} AND "Agent Lock" IS NOT EMPTY'
+  human_inputs_open: 'project = {KEY} AND issuetype = HUMAN-INPUT AND resolution IS EMPTY'
+
+automation_suggestions:      # optional Jira Automation rules (webhook mode prep)
+  - "When issue enters Awaiting Gate -> notify human (email/Slack)"
+  - "When HUMAN-INPUT created -> notify human"

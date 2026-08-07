@@ -1,0 +1,34 @@
+# ============================================================
+# Token / rate-limit discipline. Start conservative; tune after
+# observing several sessions (docs/06 §6).
+# ============================================================
+
+session:
+  wip_limit: 2               # max tickets simultaneously In Progress per session
+  max_stories_per_session: 4 # soft cap on stories advanced per session
+  wrapup_signal: |
+    When context feels heavy (long transcript, repeated summarization) or
+    the story cap is reached: STOP taking new work. Flush all state to Jira,
+    emit session_end event, produce session report, end cleanly.
+  bootstrap_budget: |
+    Read only the bootstrap set (docs/00 STEP 1-7). Do NOT read reference
+    docs (03/04/05/07) unless the current task requires them.
+
+delegation:
+  context_rule: |
+    Give subagents ONLY what they need: ticket key, spec text, relevant
+    profile commands, expected output format. Never paste whole documents
+    when a section suffices.
+  output_rule: |
+    Instruct every subagent to return a CONCISE summary (<= 30 lines) plus
+    artifact locations (branch, files, ticket comments) — not full transcripts.
+
+pacing:
+  on_rate_limit: |
+    1st hit: wait 60s, retry once.
+    2nd hit in same session: finish current ticket only, then wrap up session.
+  persistent_limits: "Lower session.wip_limit by 1; note in session report."
+
+model_budget:
+  premium_weekly_cap: 5      # mirrors models.yaml; orchestrator checks metrics
+                             # events for escalation_used count this week

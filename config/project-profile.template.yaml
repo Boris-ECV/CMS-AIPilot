@@ -1,0 +1,45 @@
+# ============================================================
+# PROJECT PROFILE — copy to project repo root as project-profile.yaml
+# This is the ONLY place project-specific facts live. Agents read this
+# before running any build/test/lint command. (docs/04)
+# ============================================================
+
+project:
+  name: ""                    # human-readable project name
+  jira_key: ""                # e.g. PROJ
+  repo: ""                    # e.g. github.com/you/project
+  default_branch: main
+  description: ""             # 2-3 sentences: what this system is
+
+stack:                        # declaration only — commands below are the truth
+  language: ""                # e.g. python 3.12 / node 22
+  frameworks: []              # e.g. [fastapi, react]
+  database: ""
+  notes: ""
+
+commands:                     # MUST be verified runnable during Phase B2
+  setup: ""                   # e.g. "pip install -r requirements.txt"
+  build: ""                   # empty string if N/A
+  test: ""                    # e.g. "pytest -q"
+  lint: ""                    # e.g. "ruff check ."
+  coverage: ""                # command that prints coverage %, e.g. "pytest --cov"
+
+quality:
+  coverage_threshold: 70      # percent; CI enforces this
+  lint_zero_tolerance: true
+
+conventions:
+  code_style: ""              # e.g. "PEP8 via ruff config in repo"
+  commit_format: "<type>(<JIRA-KEY>): <summary>"   # e.g. feat(PROJ-42): add health endpoint
+  branch_format: "story/<JIRA-KEY>-<slug>"
+  test_layout: ""             # e.g. "tests/ mirrors src/ structure"
+  notes: ""                   # anything an agent must know before touching code
+
+structure:                    # brief directory map so agents orient fast
+  src: ""
+  tests: ""
+  docs: ""
+
+deployment:                   # used by deployment module only; leave empty in v1
+  environments: []
+  notes: ""
