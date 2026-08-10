@@ -1,0 +1,18 @@
+{"ts":"2026-08-07T07:00:00Z","event":"session_start","ticket":null,"agent":"orch-20260807-a1c9","data":{"trigger":"/sdlc-start"}}
+{"ts":"2026-08-07T07:00:05Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Backlog","to":"Refining"}}
+{"ts":"2026-08-07T07:00:40Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-07T07:00:45Z","event":"human_intervention","ticket":"SDLCAIP1-1","agent":"orch-20260807-a1c9","data":{"kind":"manual_fix","summary":"Ticket sits in Awaiting Gate but is a Task-type leftover from human Jira workflow testing (not a Story, no spec/PR, description says safe to delete). Does not match any G1/G2 criteria; flagged for human to delete or clarify."}}
+{"ts":"2026-08-07T07:00:50Z","event":"session_end","ticket":null,"agent":"orch-20260807-a1c9","data":{"tokens_estimate":"medium (single refinement delegation)","tickets_touched":["SDLCAIP1-1","SDLCAIP1-2"]}}
+{"ts":"2026-08-07T08:18:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G1","mode":"manual","result":"approved","criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-07T08:18:05Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Awaiting Gate","to":"Ready"}}
+{"ts":"2026-08-07T08:21:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Ready","to":"In Progress"}}
+{"ts":"2026-08-07T08:23:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-07T08:26:00Z","event":"error","ticket":"SDLCAIP1-2","agent":"tester","data":{"summary":"Tester wrote and validated tests but did not commit/push them; orchestrator caught the gap on independent verification and had tester commit (7d239f6) before accepting the stage."}}
+{"ts":"2026-08-07T08:27:00Z","event":"blocked","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"reason":"No gh CLI or GitHub token available in execution environment; cannot open PR required for In Review stage. Dev/test work complete and verified; branch story/SDLCAIP1-2-health-endpoint@7d239f6 ready for PR."}}
+{"ts":"2026-08-07T08:46:00Z","event":"unblocked","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"reason":"Human installed and authenticated gh CLI (Boris-ECV)"}}
+{"ts":"2026-08-07T08:46:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Blocked","to":"In Review"}}
+{"ts":"2026-08-07T08:49:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-07T08:49:05Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-08T08:55:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-08T09:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-08T09:50:05Z","event":"session_end","ticket":null,"agent":"orch-20260807-a1c9","data":{"tokens_estimate":"medium-high (full dev/test/review pipeline)","tickets_touched":["SDLCAIP1-1","SDLCAIP1-2"]}}

@@ -24,7 +24,11 @@ and the code.
    (empty input, error paths) — but stay within the spec's scope.
 4. Run the full test suite. Run the coverage command; compare against
    the threshold.
-5. Rules:
+5. Before reporting: run `git status` — working tree must be clean and
+   all new test files committed AND pushed. A PASS verdict on tests that
+   only exist locally is not a real PASS; the orchestrator verifies your
+   work by pulling the branch, not by trusting this report.
+6. Rules:
    - NEVER modify production code. If the implementation is wrong,
      document the failure precisely and report back.
    - NEVER delete or weaken existing tests.
