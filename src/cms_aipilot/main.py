@@ -113,3 +113,13 @@ def update_article(article_id: str, article: ArticleCreate) -> Article:
         }
     )
     return updated
+
+
+@app.delete("/articles/{article_id}", status_code=204)
+def delete_article(article_id: str) -> None:
+    table = get_articles_table()
+    existing = table.get_item(Key={"id": article_id})
+    if existing.get("Item") is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    table.delete_item(Key={"id": article_id})

@@ -178,3 +178,50 @@ class TestUpdateArticleMissingFields:
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
         client.put(f"/articles/{EXISTING_ITEM['id']}", json={"title": "x"})
         mock_table.put_item.assert_not_called()
+
+
+class TestDeleteArticleSuccess:
+    """AC1: 成功刪除既有文章"""
+
+    def test_returns_204(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        assert response.status_code == 204
+
+    def test_delete_item_called_exactly_once_with_id(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
+
+
+class TestDeleteArticleNotFound:
+    """AC2: 文章不存在 -> 404, error message, no DynamoDB delete"""
+
+    def test_returns_404(self, mock_table):
+        mock_table.get_item.return_value = {}
+        response = client.delete("/articles/does-not-exist")
+        assert response.status_code == 404
+
+    def test_response_has_error_detail(self, mock_table):
+        mock_table.get_item.return_value = {}
+        response = client.delete("/articles/does-not-exist")
+        assert response.json().get("detail")
+
+    def test_no_dynamodb_delete(self, mock_table):
+        mock_table.get_item.return_value = {}
+        client.delete("/articles/does-not-exist")
+        mock_table.delete_item.assert_not_called()
+
+
+class TestDeleteArticleRepeated:
+    """AC3: 對已刪除的 id 再次刪除 -> 404"""
+
+    def test_second_delete_returns_404(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        first_response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        assert first_response.status_code == 204
+
+        mock_table.get_item.return_value = {}
+        second_response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        assert second_response.status_code == 404
+        assert mock_table.delete_item.call_count == 1
