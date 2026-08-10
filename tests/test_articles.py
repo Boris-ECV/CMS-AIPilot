@@ -87,3 +87,94 @@ class TestCreateArticleEmptyContent:
         payload = {**VALID_PAYLOAD, "content": ""}
         client.post("/articles", json=payload)
         mock_table.put_item.assert_not_called()
+
+
+EXISTING_ITEM = {
+    "id": "existing-id",
+    "title": "Old Title",
+    "content": "Old content.",
+    "published_at": "2026-01-01T00:00:00",
+}
+
+UPDATE_PAYLOAD = {
+    "title": "New Title",
+    "content": "New content.",
+    "published_at": "2026-08-10T09:00:00",
+}
+
+
+class TestUpdateArticleSuccess:
+    """AC1: 成功更新既有文章"""
+
+    def test_returns_200(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        response = client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+        assert response.status_code == 200
+
+    def test_response_contains_updated_id_and_fields(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        response = client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+        body = response.json()
+        assert body["id"] == EXISTING_ITEM["id"]
+        assert body["title"] == UPDATE_PAYLOAD["title"]
+        assert body["content"] == UPDATE_PAYLOAD["content"]
+        assert body["published_at"] == UPDATE_PAYLOAD["published_at"]
+
+    def test_put_item_called_exactly_once_with_updated_attributes(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+        mock_table.put_item.assert_called_once()
+        item = mock_table.put_item.call_args.kwargs["Item"]
+        assert item["id"] == EXISTING_ITEM["id"]
+        assert item["title"] == UPDATE_PAYLOAD["title"]
+        assert item["content"] == UPDATE_PAYLOAD["content"]
+        assert item["published_at"] == "2026-08-10T09:00:00"
+
+
+class TestUpdateArticleNotFound:
+    """AC2: 文章不存在 -> 404, no DynamoDB write"""
+
+    def test_returns_404(self, mock_table):
+        mock_table.get_item.return_value = {}
+        response = client.put("/articles/does-not-exist", json=UPDATE_PAYLOAD)
+        assert response.status_code == 404
+
+    def test_response_has_error_detail(self, mock_table):
+        mock_table.get_item.return_value = {}
+        response = client.put("/articles/does-not-exist", json=UPDATE_PAYLOAD)
+        assert response.json().get("detail")
+
+    def test_no_dynamodb_write(self, mock_table):
+        mock_table.get_item.return_value = {}
+        client.put("/articles/does-not-exist", json=UPDATE_PAYLOAD)
+        mock_table.put_item.assert_not_called()
+
+
+class TestUpdateArticleEmptyTitle:
+    """AC3: title 為空字串 -> 422, article data unchanged"""
+
+    def test_returns_422(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        payload = {**UPDATE_PAYLOAD, "title": ""}
+        response = client.put(f"/articles/{EXISTING_ITEM['id']}", json=payload)
+        assert response.status_code == 422
+
+    def test_no_dynamodb_write(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        payload = {**UPDATE_PAYLOAD, "title": ""}
+        client.put(f"/articles/{EXISTING_ITEM['id']}", json=payload)
+        mock_table.put_item.assert_not_called()
+
+
+class TestUpdateArticleMissingFields:
+    """AC4: 缺少必填欄位 -> 422, article data unchanged"""
+
+    def test_returns_422(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        response = client.put(f"/articles/{EXISTING_ITEM['id']}", json={"title": "x"})
+        assert response.status_code == 422
+
+    def test_no_dynamodb_write(self, mock_table):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        client.put(f"/articles/{EXISTING_ITEM['id']}", json={"title": "x"})
+        mock_table.put_item.assert_not_called()

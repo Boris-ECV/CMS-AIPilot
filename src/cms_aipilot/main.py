@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 import boto3
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="CMS AI Pilot")
@@ -44,3 +44,22 @@ def create_article(article: ArticleCreate) -> Article:
         }
     )
     return created
+
+
+@app.put("/articles/{article_id}")
+def update_article(article_id: str, article: ArticleCreate) -> Article:
+    table = get_articles_table()
+    existing = table.get_item(Key={"id": article_id})
+    if existing.get("Item") is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    updated = Article(id=article_id, **article.model_dump())
+    table.put_item(
+        Item={
+            "id": updated.id,
+            "title": updated.title,
+            "content": updated.content,
+            "published_at": updated.published_at.isoformat(),
+        }
+    )
+    return updated
