@@ -1,9 +1,10 @@
+import math
 import os
 import uuid
 from datetime import datetime
 
 import boto3
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="CMS AI Pilot")
@@ -22,6 +23,20 @@ class ArticleCreate(BaseModel):
 
 class Article(ArticleCreate):
     id: str
+
+
+class ArticleSummary(BaseModel):
+    id: str
+    title: str
+    published_at: datetime
+
+
+class ArticleListResponse(BaseModel):
+    items: list[ArticleSummary]
+    total: int
+    total_pages: int
+    page: int
+    page_size: int
 
 
 def get_articles_table():
@@ -44,3 +59,38 @@ def create_article(article: ArticleCreate) -> Article:
         }
     )
     return created
+
+
+@app.get("/articles")
+def list_articles(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1),
+) -> ArticleListResponse:
+    table = get_articles_table()
+    response = table.scan()
+    items = response.get("Items", [])
+    items.sort(key=lambda item: item["published_at"], reverse=True)
+
+    total = len(items)
+    total_pages = math.ceil(total / page_size) if total else 0
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_items = items[start:end]
+
+    return ArticleListResponse(
+        items=[ArticleSummary(**item) for item in page_items],
+        total=total,
+        total_pages=total_pages,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@app.get("/articles/{article_id}")
+def get_article(article_id: str) -> Article:
+    table = get_articles_table()
+    response = table.get_item(Key={"id": article_id})
+    item = response.get("Item")
+    if item is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return Article(**item)
