@@ -77,6 +77,7 @@
 | PR 開了但 CI 沒跑 | GitHub Actions workflow 檔在 main 上嗎？branch protection 的 status check 名稱對嗎？ |
 | Session 中途死掉 | 直接重開 `/sdlc:start`——恢復程序會處理殘局，這是設計保證 |
 | Jira MCP 整個掛掉 | 降級方案：用 Jira REST API + curl（token 放環境變數 `JIRA_API_TOKEN`）。指示 orchestrator「Jira MCP 不可用，改用 REST API 降級模式」，它應以相同協議操作 |
+| Story 卡在 In Review 前、orchestrator 回報缺 GitHub 憑證 | 新環境第一次 `/sdlc:start` 前，先確認 `gh auth status` 已登入正確帳號（或 `GITHUB_TOKEN` 已設）；沒裝就先 `gh auth login`，省一次 Blocked 循環 |
 
 ## 8. 框架本身的維護
 

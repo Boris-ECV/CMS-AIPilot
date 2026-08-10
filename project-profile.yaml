@@ -50,3 +50,19 @@ structure:
 deployment:
   environments: []
   notes: "AWS serverless(Lambda + DynamoDB + S3 + API Gateway),IaC 用 AWS CDK(Python)。部署模組尚未啟用,v1 手動部署。"
+
+# ------------------------------------------------------------
+# jira_custom_field_ids — 補 config/jira-workflow.yaml 沒講的一塊:
+# 該檔案定義的自訂欄位(Agent Lock 等)在 Jira API 裡是用
+# customfield_XXXXX 當 key,不是顯示名稱。這裡是本專案 SDLCAIP1
+# 實際建立後的名稱→ID 對照。orchestrator 讀寫這些欄位時應優先用
+# 這份對照表,不要落到 jira-workflow.yaml 的留言降級模式
+# (fallback_when_no_custom_fields)——那個 fallback 是給欄位真的
+# 建不出來的情況用的,不是這裡。
+# ------------------------------------------------------------
+jira_custom_field_ids:
+  "Agent Lock": customfield_11719
+  "Lock Timestamp": customfield_11721
+  "Reopen Count": customfield_11722
+  "Human Touch Count": customfield_11723
+  "Stage Entered At": customfield_11724
