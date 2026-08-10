@@ -34,6 +34,7 @@ class TestCreateArticleSuccess:
         assert body.get("id")
         assert body["title"] == VALID_PAYLOAD["title"]
         assert body["content"] == VALID_PAYLOAD["content"]
+        assert body["published_at"] == VALID_PAYLOAD["published_at"]
 
     def test_put_item_called_exactly_once_with_attributes(self, mock_table):
         response = client.post("/articles", json=VALID_PAYLOAD)
