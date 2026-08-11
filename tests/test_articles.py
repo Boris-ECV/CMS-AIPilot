@@ -1,6 +1,8 @@
+import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
+from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
 
 from cms_aipilot.main import app
@@ -19,6 +21,14 @@ def mock_table():
     fake_table = MagicMock()
     with patch("cms_aipilot.main.get_articles_table", return_value=fake_table):
         yield fake_table
+
+
+@pytest.fixture
+def mock_s3(monkeypatch):
+    monkeypatch.setenv("ARTICLES_STATIC_BUCKET_NAME", "test-articles-static-bucket")
+    fake_s3 = MagicMock()
+    with patch("cms_aipilot.main.get_s3_client", return_value=fake_s3):
+        yield fake_s3
 
 
 class TestCreateArticleSuccess:
@@ -183,12 +193,12 @@ class TestUpdateArticleMissingFields:
 class TestDeleteArticleSuccess:
     """AC1: 成功刪除既有文章"""
 
-    def test_returns_204(self, mock_table):
+    def test_returns_204(self, mock_table, mock_s3):
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
         response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
         assert response.status_code == 204
 
-    def test_delete_item_called_exactly_once_with_id(self, mock_table):
+    def test_delete_item_called_exactly_once_with_id(self, mock_table, mock_s3):
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
         client.delete(f"/articles/{EXISTING_ITEM['id']}")
         mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
@@ -212,11 +222,17 @@ class TestDeleteArticleNotFound:
         client.delete("/articles/does-not-exist")
         mock_table.delete_item.assert_not_called()
 
+    def test_no_s3_delete(self, mock_table, mock_s3):
+        """S3 靜態頁刪除不會被觸發（Scenario 3）"""
+        mock_table.get_item.return_value = {}
+        client.delete("/articles/does-not-exist")
+        mock_s3.delete_object.assert_not_called()
+
 
 class TestDeleteArticleRepeated:
     """AC3: 對已刪除的 id 再次刪除 -> 404"""
 
-    def test_second_delete_returns_404(self, mock_table):
+    def test_second_delete_returns_404(self, mock_table, mock_s3):
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
         first_response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
         assert first_response.status_code == 204
@@ -225,3 +241,64 @@ class TestDeleteArticleRepeated:
         second_response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
         assert second_response.status_code == 404
         assert mock_table.delete_item.call_count == 1
+
+
+class TestDeleteArticleRemovesStaticPage:
+    """SDLCAIP1-9 Scenario 1: 成功刪除文章後移除對應 S3 靜態頁物件"""
+
+    def test_returns_204(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        assert response.status_code == 204
+        assert response.content == b""
+
+    def test_s3_delete_object_called_with_correct_bucket_and_key(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        mock_s3.delete_object.assert_called_once_with(
+            Bucket="test-articles-static-bucket",
+            Key=f"articles/{EXISTING_ITEM['id']}.html",
+        )
+
+
+class TestDeleteArticleStaticPageDeletionFails:
+    """SDLCAIP1-9 Scenario 2: S3 靜態頁刪除失敗時阻斷刪除 API 的成功回應"""
+
+    def test_returns_502(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "DeleteObject"
+        )
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        assert response.status_code == 502
+
+    def test_response_body_contains_error_code_and_article_id(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "DeleteObject"
+        )
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        body = response.json()
+        assert body["error_code"] == "STATIC_PAGE_DELETION_FAILED"
+        assert body["article_id"] == EXISTING_ITEM["id"]
+
+    def test_dynamodb_delete_item_still_called(self, mock_table, mock_s3):
+        """SDLCAIP1-7 hard-delete 契約不可逆，本票不嘗試復原"""
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "DeleteObject"
+        )
+        client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
+        mock_table.put_item.assert_not_called()
+
+    def test_failure_logged_as_error(self, mock_table, mock_s3, caplog):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "DeleteObject"
+        )
+        with caplog.at_level(logging.ERROR, logger="cms_aipilot.main"):
+            client.delete(f"/articles/{EXISTING_ITEM['id']}")
+        error_records = [r for r in caplog.records if r.levelno == logging.ERROR]
+        assert len(error_records) == 1
+        assert EXISTING_ITEM["id"] in error_records[0].getMessage()
