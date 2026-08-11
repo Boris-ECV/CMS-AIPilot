@@ -16,3 +16,9 @@
 {"ts":"2026-08-08T08:55:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G2","mode":"manual","result":"approved"}}
 {"ts":"2026-08-08T09:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Awaiting Gate","to":"Done"}}
 {"ts":"2026-08-08T09:50:05Z","event":"session_end","ticket":null,"agent":"orch-20260807-a1c9","data":{"tokens_estimate":"medium-high (full dev/test/review pipeline)","tickets_touched":["SDLCAIP1-1","SDLCAIP1-2"]}}
+{"ts":"2026-08-11T16:00:00Z","event":"session_start","ticket":null,"agent":"orch-20260812-f3k9","data":{"note":"bootstrap; recovery found 3 approved-but-unprocessed gates (SDLCAIP1-8 G1, SDLCAIP1-9 G2, SDLCAIP1-10 G2)"}}
+{"ts":"2026-08-11T16:17:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Designing"}}
+{"ts":"2026-08-11T16:50:00Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260812-f3k9","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T16:50:05Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T16:52:00Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260812-f3k9","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T16:52:05Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Done"}}
