@@ -77,16 +77,16 @@ metrics_events: [design_completed, adr_escalated]
 - 模組不得修改核心文件與核心 agent；只能透過 hook 插入
 - 模組間不得互相依賴（如需組合，建立一個 composite 模組明示宣告）
 
-## 5. 規劃中的模組（v1 僅登記，未實作）
+## 5. 模組狀態
 
-| 模組 | Hook | 摘要 |
-|------|------|------|
-| **research（調研）** | pre_refine | Story 涉及未知領域時先產出調研報告（技術選型比較、可行性、風險），作為需求階段輸入。高階模型候選使用場景。 |
-| **architecture（架構設計）** | post_ready | 大型 Story/Epic 的系統設計階段：介面定義、ADR（架構決策記錄）、模組邊界。 |
-| **deep-decomposition（關鍵模組深度拆解）** | post_ready | 對關鍵複雜模組做深度拆解：內部結構、依賴圖、實作順序、風險點。輸出成為多個子 Story。 |
-| **deployment（部署）** | post_done | G3 gate + 部署執行 + 部署後驗證（health check、rollback 條件）。 |
-| **delivery（交付）** | post_done | 交付文件生成：release notes、使用者文件、變更摘要（Haiku 為主）。 |
-| **notification（通知）** | on_blocked | Blocked / gate 待放行時通知人類（Slack/email）。 |
+| 模組 | Hook | 摘要 | 狀態 |
+|------|------|------|------|
+| **architecture（架構設計）** | post_ready | 每張過 G1 的 Story 先產出 SA/SD 設計文件（介面契約、資料模型、關鍵決策）才進 Ready，見 `modules/architecture/`。 | **已實作**（首個由人類使用情境驅動、實際完成的模組；原始規劃是「只有大型 Story」，此實作放寬為全部 Story，見模組 README 的差異說明） |
+| **research（調研）** | pre_refine | Story 涉及未知領域時先產出調研報告（技術選型比較、可行性、風險），作為需求階段輸入。高階模型候選使用場景。 | 規劃中 |
+| **deep-decomposition（關鍵模組深度拆解）** | post_ready | 對關鍵複雜模組做深度拆解：內部結構、依賴圖、實作順序、風險點。輸出成為多個子 Story。 | 規劃中 |
+| **deployment（部署）** | post_done | G3 gate + 部署執行 + 部署後驗證（health check、rollback 條件）。 | 僅骨架（`modules/deployment-skeleton/`，範例用，不可啟用） |
+| **delivery（交付）** | post_done | 交付文件生成：release notes、使用者文件、變更摘要（Haiku 為主）。 | 規劃中 |
+| **notification（通知）** | on_blocked | Blocked / gate 待放行時通知人類（Slack/email）。 | 規劃中 |
 
 每個模組未來由執行模型依本規格 + `modules/_registry/module-development-guide.md` 開發，人類驗收後啟用。
 

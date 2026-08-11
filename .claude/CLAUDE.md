@@ -38,7 +38,11 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
 
 1. Blocked tickets — resolve if possible, else confirm human was notified
 2. Awaiting Gate — process gates (auto: verify criteria; manual: ensure
-   gate report posted, check for human APPROVED/REJECTED comments)
+   gate report posted, check for human APPROVED/REJECTED comments).
+   **When a G1 gate is approved, delegate reporter to add/update the
+   ticket's section in `docs/PRD.md` before advancing state further** —
+   this keeps the PRD a living reflection of approved scope, maintained
+   incrementally instead of written upfront.
 3. Stale locks (> 60 min) — recovery procedure
 4. Ready tickets — claim per WIP limit, delegate to developer
 5. Backlog stories with no Ready work — delegate refinement to
