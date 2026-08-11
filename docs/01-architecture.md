@@ -88,6 +88,11 @@ Jira Automation 規則偵測特定狀態變化（例如工單進入 `Ready`）�
 - PR description 必含 Jira key(讓 Jira smart link 自動關聯）與驗收條件 checklist。
 - CI（GitHub Actions）是 P2「判斷外化」的執行者：lint、測試、覆蓋率門檻都在 CI 定義，agent 不能繞過。
 - CI 設定本身由實例化流程建立（docs/04），框架只規定「必須存在且 gate 依賴它」。
+- **平行委派多個 developer/tester 時，每個委派必須各自跑在獨立的 git worktree**（Claude Code Agent 工具的
+  `isolation: "worktree"`），不可共用同一份本機 checkout。原因：多個 subagent 各自在同一顆工作目錄
+  `git checkout` 不同分支時會互相踩——A 尚未 commit 的變更可能被 B 的 checkout 直接覆蓋掉，即使兩者最終
+  都能用 `git stash`／`cherry-pick` 自行搶救回來，也不該讓這種競態發生。單一委派（一次只處理一張票）不受影響，
+  只有「同時」委派多張票的開發/測試工作時才需要 worktree 隔離。
 
 ## 7. 模型分層架構（成本控制）
 
