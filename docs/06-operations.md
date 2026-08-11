@@ -78,6 +78,7 @@
 | Session 中途死掉 | 直接重開 `/sdlc:start`——恢復程序會處理殘局，這是設計保證 |
 | Jira MCP 整個掛掉 | 降級方案：用 Jira REST API + curl（token 放環境變數 `JIRA_API_TOKEN`）。指示 orchestrator「Jira MCP 不可用，改用 REST API 降級模式」，它應以相同協議操作 |
 | Story 卡在 In Review 前、orchestrator 回報缺 GitHub 憑證 | 新環境第一次 `/sdlc:start` 前，先確認 `gh auth status` 已登入正確帳號（或 `GITHUB_TOKEN` 已設）；沒裝就先 `gh auth login`，省一次 Blocked 循環 |
+| 平行委派的 developer/tester 回報工作目錄被覆蓋、未 commit 變更消失 | 檢查委派時是否漏了 `isolation: "worktree"`（見 docs/01 §6）——平行委派多張票時每個都要獨立 worktree，共用同一份 checkout 會互踩 |
 
 ## 8. 框架本身的維護
 

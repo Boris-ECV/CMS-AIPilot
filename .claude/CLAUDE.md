@@ -58,6 +58,13 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
 - Verify subagent output yourself against the stage exit criteria
   before advancing state. Reopen (state back + Reopen Count +1) on
   failure.
+- **When delegating more than one ticket's work in parallel (within the
+  WIP limit), each parallel delegation MUST run in an isolated git
+  worktree (Agent tool `isolation: "worktree"`).** A shared working
+  directory causes git checkout races between concurrent subagents —
+  observed failure mode: one subagent's uncommitted changes silently
+  overwritten by another subagent's branch checkout in the same tree.
+  Sequential delegation (one ticket at a time) does not need this.
 
 ## Escalation
 
