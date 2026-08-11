@@ -61,6 +61,19 @@ def mock_ssm(monkeypatch):
 def mock_auth_table():
     fake_table = MagicMock()
     fake_table.get_item.return_value = {}
+
+    def fake_update_item(Key, UpdateExpression, ExpressionAttributeValues, **kwargs):
+        # Minimal fake of the atomic ADD failed_attempts update used by the
+        # login handler, so ReturnValues="UPDATED_NEW" behaves realistically.
+        if "ADD failed_attempts" in UpdateExpression:
+            current = fake_table.get_item.return_value.get("Item", {})
+            new_value = int(current.get("failed_attempts", 0)) + ExpressionAttributeValues[
+                ":incr"
+            ]
+            return {"Attributes": {"failed_attempts": new_value}}
+        return {}
+
+    fake_table.update_item.side_effect = fake_update_item
     with patch("cms_aipilot.main.get_auth_table", return_value=fake_table):
         yield fake_table
 
@@ -116,10 +129,11 @@ class TestLoginSuccess:
     def test_resets_failed_attempts_to_zero(self, mock_ssm, mock_auth_table):
         mock_auth_table.get_item.return_value = auth_item(failed_attempts=3, locked_until=0)
         client.post("/login", json={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD})
-        mock_auth_table.put_item.assert_called_once()
-        item = mock_auth_table.put_item.call_args.kwargs["Item"]
-        assert item["failed_attempts"] == 0
-        assert item["locked_until"] == 0
+        mock_auth_table.update_item.assert_called_once()
+        kwargs = mock_auth_table.update_item.call_args.kwargs
+        assert kwargs["ExpressionAttributeValues"][":zero"] == 0
+        assert "failed_attempts" in kwargs["UpdateExpression"]
+        assert "locked_until" in kwargs["UpdateExpression"]
 
 
 class TestLoginWrongPassword:
@@ -140,9 +154,44 @@ class TestLoginWrongPassword:
     def test_increments_failed_attempts(self, mock_ssm, mock_auth_table):
         mock_auth_table.get_item.return_value = auth_item(failed_attempts=0, locked_until=0)
         client.post("/login", json={"username": ADMIN_USERNAME, "password": "wrong-password"})
-        mock_auth_table.put_item.assert_called_once()
-        item = mock_auth_table.put_item.call_args.kwargs["Item"]
-        assert item["failed_attempts"] == 1
+        mock_auth_table.update_item.assert_called_once()
+        kwargs = mock_auth_table.update_item.call_args.kwargs
+        assert kwargs["UpdateExpression"] == "ADD failed_attempts :incr"
+        assert kwargs["ExpressionAttributeValues"][":incr"] == 1
+
+    def test_uses_atomic_add_not_read_then_write(self, mock_ssm, mock_auth_table):
+        """Two rapid sequential failed attempts must both be counted via the
+        atomic ADD expression rather than an application-side read-modify-
+        write, which would be vulnerable to a race under concurrency."""
+        mock_auth_table.get_item.return_value = auth_item(failed_attempts=0, locked_until=0)
+        client.post("/login", json={"username": ADMIN_USERNAME, "password": "wrong-password"})
+        client.post("/login", json={"username": ADMIN_USERNAME, "password": "wrong-password"})
+
+        assert mock_auth_table.update_item.call_count == 2
+        for call in mock_auth_table.update_item.call_args_list:
+            assert call.kwargs["UpdateExpression"] == "ADD failed_attempts :incr"
+            assert call.kwargs["ExpressionAttributeValues"] == {":incr": 1}
+        mock_auth_table.put_item.assert_not_called()
+
+    def test_calls_bcrypt_checkpw_even_when_username_is_wrong(self, mock_ssm, mock_auth_table):
+        """bcrypt.checkpw must always run (against a dummy hash) even when
+        the username doesn't match, so a wrong-username response takes the
+        same amount of time as a wrong-password response — otherwise valid
+        usernames could be enumerated via a timing side-channel."""
+        mock_auth_table.get_item.return_value = auth_item(failed_attempts=0, locked_until=0)
+        with patch("cms_aipilot.main.bcrypt.checkpw", wraps=bcrypt.checkpw) as spy_checkpw:
+            response = client.post(
+                "/login", json={"username": "no-such-user", "password": "irrelevant"}
+            )
+        assert response.status_code == 401
+        spy_checkpw.assert_called_once()
+
+    def test_wrong_username_returns_401(self, mock_ssm, mock_auth_table):
+        mock_auth_table.get_item.return_value = auth_item(failed_attempts=0, locked_until=0)
+        response = client.post(
+            "/login", json={"username": "no-such-user", "password": ADMIN_PASSWORD}
+        )
+        assert response.status_code == 401
 
 
 class TestLoginLockoutTriggered:
@@ -155,11 +204,15 @@ class TestLoginLockoutTriggered:
         )
         assert response.status_code == 401
 
-        item = mock_auth_table.put_item.call_args.kwargs["Item"]
-        assert item["failed_attempts"] == 5
+        assert mock_auth_table.update_item.call_count == 2
+        increment_call, lock_call = mock_auth_table.update_item.call_args_list
+        assert increment_call.kwargs["UpdateExpression"] == "ADD failed_attempts :incr"
+
         now = int(time.time())
-        assert item["locked_until"] > now
-        assert item["locked_until"] <= now + 15 * 60 + 5
+        locked_until = lock_call.kwargs["ExpressionAttributeValues"][":locked_until"]
+        assert "locked_until" in lock_call.kwargs["UpdateExpression"]
+        assert locked_until > now
+        assert locked_until <= now + 15 * 60 + 5
 
 
 class TestLoginWhileLocked:
@@ -204,7 +257,7 @@ class TestLoginWhileLocked:
             failed_attempts=5, locked_until=locked_until
         )
         client.post("/login", json={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD})
-        mock_auth_table.put_item.assert_not_called()
+        mock_auth_table.update_item.assert_not_called()
 
 
 class TestLoginAfterLockoutExpires:
@@ -227,9 +280,10 @@ class TestLoginAfterLockoutExpires:
             failed_attempts=5, locked_until=expired_lock
         )
         client.post("/login", json={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD})
-        item = mock_auth_table.put_item.call_args.kwargs["Item"]
-        assert item["failed_attempts"] == 0
-        assert item["locked_until"] == 0
+        kwargs = mock_auth_table.update_item.call_args.kwargs
+        assert kwargs["ExpressionAttributeValues"][":zero"] == 0
+        assert "failed_attempts" in kwargs["UpdateExpression"]
+        assert "locked_until" in kwargs["UpdateExpression"]
 
 
 class TestDecodeAccessTokenValid:

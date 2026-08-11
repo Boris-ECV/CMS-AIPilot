@@ -18,6 +18,14 @@ AUTH_STATE_ID = "admin_login_state"
 LOCKOUT_THRESHOLD = 5
 LOCKOUT_DURATION_SECONDS = 15 * 60
 
+# Fixed dummy bcrypt hash used when the supplied username doesn't match the
+# admin username, so bcrypt.checkpw is always invoked (constant-time-ish
+# response regardless of whether the username exists) and the endpoint
+# doesn't leak valid usernames via a timing side-channel.
+_DUMMY_PASSWORD_HASH = bcrypt.hashpw(
+    b"dummy-password-for-timing-safety-do-not-use", bcrypt.gensalt()
+).decode("utf-8")
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
@@ -182,20 +190,39 @@ def login(credentials: LoginRequest) -> TokenResponse:
     admin_username = get_admin_username()
     admin_password_hash = get_admin_password_hash()
 
-    valid = credentials.username == admin_username and bcrypt.checkpw(
-        credentials.password.encode("utf-8"), admin_password_hash.encode("utf-8")
+    username_matches = credentials.username == admin_username
+    # Always run bcrypt.checkpw (against the real hash if the username
+    # matches, otherwise against a fixed dummy hash) so a wrong username and
+    # a wrong password take the same amount of time — avoids leaking valid
+    # usernames via a timing side-channel.
+    password_hash_to_check = admin_password_hash if username_matches else _DUMMY_PASSWORD_HASH
+    password_matches = bcrypt.checkpw(
+        credentials.password.encode("utf-8"), password_hash_to_check.encode("utf-8")
     )
+    valid = username_matches and password_matches
 
     if not valid:
-        failed_attempts = state["failed_attempts"] + 1
-        update = {"id": AUTH_STATE_ID, "failed_attempts": failed_attempts}
+        # Atomic server-side increment (ADD) instead of read-then-write, so
+        # concurrent failed attempts can't race and undercount.
+        result = table.update_item(
+            Key={"id": AUTH_STATE_ID},
+            UpdateExpression="ADD failed_attempts :incr",
+            ExpressionAttributeValues={":incr": 1},
+            ReturnValues="UPDATED_NEW",
+        )
+        failed_attempts = int(result["Attributes"]["failed_attempts"])
         if failed_attempts >= LOCKOUT_THRESHOLD:
-            update["locked_until"] = now + LOCKOUT_DURATION_SECONDS
-        else:
-            update["locked_until"] = 0
-        table.put_item(Item=update)
+            table.update_item(
+                Key={"id": AUTH_STATE_ID},
+                UpdateExpression="SET locked_until = :locked_until",
+                ExpressionAttributeValues={":locked_until": now + LOCKOUT_DURATION_SECONDS},
+            )
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    table.put_item(Item={"id": AUTH_STATE_ID, "failed_attempts": 0, "locked_until": 0})
+    table.update_item(
+        Key={"id": AUTH_STATE_ID},
+        UpdateExpression="SET failed_attempts = :zero, locked_until = :zero",
+        ExpressionAttributeValues={":zero": 0},
+    )
     access_token = create_access_token(subject=admin_username)
     return TokenResponse(access_token=access_token, token_type="bearer")
