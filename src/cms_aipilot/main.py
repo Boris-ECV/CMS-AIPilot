@@ -1,13 +1,18 @@
+import logging
 import math
 import os
 import uuid
 from datetime import datetime
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="CMS AI Pilot")
+
+logger = logging.getLogger(__name__)
 
 
 @app.get("/health")
@@ -44,6 +49,33 @@ def get_articles_table():
     table_name = os.environ["ARTICLES_TABLE_NAME"]
     dynamodb = boto3.resource("dynamodb")
     return dynamodb.Table(table_name)
+
+
+def get_s3_client():
+    """Lazily create the S3 client so it can be mocked in tests."""
+    return boto3.client("s3")
+
+
+class StaticPageDeletionError(Exception):
+    def __init__(self, article_id: str, cause: Exception) -> None:
+        self.article_id = article_id
+        self.cause = cause
+        super().__init__(f"Failed to delete static page for article_id={article_id}: {cause}")
+
+
+def _delete_static_page(article_id: str) -> None:
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    key = f"articles/{article_id}.html"
+    s3 = get_s3_client()
+    try:
+        s3.delete_object(Bucket=bucket, Key=key)
+    except (BotoCoreError, ClientError) as exc:
+        logger.error(
+            "Failed to delete static page for article_id=%s: %s",
+            article_id,
+            exc,
+        )
+        raise StaticPageDeletionError(article_id, exc) from exc
 
 
 @app.post("/articles", status_code=201)
@@ -116,10 +148,23 @@ def update_article(article_id: str, article: ArticleCreate) -> Article:
 
 
 @app.delete("/articles/{article_id}", status_code=204)
-def delete_article(article_id: str) -> None:
+def delete_article(article_id: str) -> Response:
     table = get_articles_table()
     existing = table.get_item(Key={"id": article_id})
     if existing.get("Item") is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
     table.delete_item(Key={"id": article_id})
+
+    try:
+        _delete_static_page(article_id)
+    except StaticPageDeletionError:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error_code": "STATIC_PAGE_DELETION_FAILED",
+                "detail": "Article deleted but its static page could not be removed from S3.",
+                "article_id": article_id,
+            },
+        )
+    return Response(status_code=204)
