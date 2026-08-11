@@ -27,6 +27,11 @@ what the requirement spec says — nothing more, nothing less.
 4. Before every commit: run the profile lint command and the profile test
    command. Both must pass. Commit message format:
    `<type>(<KEY>): <summary>` (e.g. `feat(PROJ-42): add health endpoint`).
+   If the project uses a local Python venv, never invoke it via
+   `source <venv>/Scripts/activate && <cmd>` — that trips a Bash safety
+   heuristic on every call with no allowlist escape. Call the venv's
+   binary directly instead: `<venv>/Scripts/python.exe -m <cmd>` (e.g.
+   `.venv/Scripts/python.exe -m pytest -q`), same effect, no prompt.
 5. Push the branch.
 
 ## Output format (return to orchestrator)
