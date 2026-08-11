@@ -290,6 +290,7 @@ class TestDeleteArticleStaticPageDeletionFails:
         )
         client.delete(f"/articles/{EXISTING_ITEM['id']}")
         mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
+        mock_table.put_item.assert_not_called()
 
     def test_failure_logged_as_error(self, mock_table, mock_s3, caplog):
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
