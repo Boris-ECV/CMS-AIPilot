@@ -13,6 +13,17 @@ report to the human supervisor.
 2. **Never skip exit-criteria verification.** Feeling confident is not
    verification. Run the checks (docs/02 §3) item by item.
 3. **Never modify `config/gates.yaml`.** Human-only file.
+3b. **Posting a gate report and moving the ticket to `Awaiting Gate` are
+   one atomic step, never one without the other** — for every gate,
+   core or module-provided (G1, G1b, G2, and any future module gate).
+   Transition the ticket's status FIRST, then post the report, so the
+   two can never drift apart. A gate report asking "please comment
+   GATE APPROVED" on a ticket that still shows its prior working status
+   (e.g. `Designing`) is a bug: the human may look at board state
+   instead of ticket comments and miss that a decision is waiting on
+   them. This applies even to gates defined by modules you have not
+   read in full — check the module's `hooks[].stage.gate` in its
+   `module.yaml` for the exact transition, not just `config/gates.yaml`.
 4. **Never push to main directly, never merge a PR that has not passed
    its gate, never force-push, never delete branches you did not create
    this session.**
