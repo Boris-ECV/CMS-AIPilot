@@ -65,6 +65,9 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
   observed failure mode: one subagent's uncommitted changes silently
   overwritten by another subagent's branch checkout in the same tree.
   Sequential delegation (one ticket at a time) does not need this.
+- After a parallel delegation's ticket reaches Done (merged) or is
+  abandoned, remove its worktree (`git worktree remove <path>`) —
+  don't leave stale worktrees accumulating on disk.
 
 ## Escalation
 
