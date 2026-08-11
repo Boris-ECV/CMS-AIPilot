@@ -1,0 +1,41 @@
+# Module manifest — see docs/05 §2 for format.
+name: architecture
+version: 1.0.0
+framework_min_version: 1.0.0
+summary: "Adds a mandatory SA/SD design stage (Designing) between G1 and Ready"
+
+# Deviation from the original docs/05 §5 registry entry: that entry scoped this
+# module to "大型 Story/Epic" only. This instantiation makes Designing mandatory
+# for EVERY story that passes G1 — a per-project instantiation choice, not a
+# core framework default. If a future project wants the size-gated behavior
+# instead, add a condition to the architect agent's input (skip if the ticket
+# is tagged "trivial") rather than changing this manifest.
+
+hooks:
+  - hook: post_ready            # after G1, before the ticket is usable by developer
+    action: insert_stage
+    stage:
+      name: Designing
+      agent: architect
+      exit_criteria:
+        - "Design doc exists at docs/design/<JIRA-KEY>.md following templates/design-spec.md"
+        - "Interface/API contract section is non-empty"
+        - "Data model section is non-empty (or explicitly states 'no new data model')"
+        - "Open design questions section is empty — unresolved questions go to
+           HUMAN-INPUT, same discipline as requirements Refining"
+      gate:
+        id: G1b
+        default_mode: manual   # human reviews the design doc before dev starts
+
+agents:
+  - file: agents/architect.md
+    model_tier: sonnet
+
+# Jira additions applied during enablement (docs/05 §3)
+jira:
+  states: [Designing]
+  labels: [module-architecture]
+
+triggers: []
+
+metrics_events: [design_completed, design_rejected]

@@ -9,7 +9,9 @@
 gates:
   G1:
     name: requirements-approved
-    transition: "Refining -> Ready"
+    transition: "Refining -> Designing"   # architecture module enabled: G1 now
+                                           # leads into Designing, not directly to
+                                           # Ready — see G1b and modules/architecture
     mode: manual              # manual | auto
     criteria:                 # ALL must pass (checked in both modes; in manual
                               # mode they gate the report, human is final say)
@@ -37,6 +39,21 @@ gates:
         check: "Every item in review checklist has an explicit result"
       - id: coverage_met
         check: "Coverage >= profile.quality.coverage_threshold"
+
+  G1b:
+    name: design-approved
+    module: architecture
+    transition: "Designing -> Ready"
+    mode: manual              # start manual; see docs/06 §5 for the graduation path
+    criteria:
+      - id: design_doc_exists
+        check: "docs/design/<JIRA-KEY>.md exists, following templates/design-spec.md"
+      - id: interface_declared
+        check: "Interface/API contract section is non-empty (or explicitly 'N/A' with reason)"
+      - id: data_model_declared
+        check: "Data model section is non-empty (or explicitly 'no new data model')"
+      - id: no_open_design_questions
+        check: "Open design questions section is empty"
 
 # Module-provided gates are appended below by the module enablement
 # procedure (docs/05 §3). Example:
