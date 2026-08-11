@@ -7,13 +7,24 @@ from fastapi.testclient import TestClient
 
 from cms_aipilot.main import app
 
-client = TestClient(app)
+client = TestClient(app, headers={"Authorization": "Bearer test-token"})
 
 VALID_PAYLOAD = {
     "title": "Hello World",
     "content": "Some article content.",
     "published_at": "2026-08-10T09:00:00",
 }
+
+
+@pytest.fixture(autouse=True)
+def mock_auth():
+    """SDLCAIP1-11: article endpoints require auth; stub out token decoding
+    for these business-logic tests (auth behavior itself is covered in
+    tests/test_articles_auth.py)."""
+    with patch(
+        "cms_aipilot.main.decode_access_token", return_value={"sub": "admin"}
+    ) as mocked:
+        yield mocked
 
 
 @pytest.fixture
