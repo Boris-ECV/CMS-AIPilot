@@ -23,7 +23,11 @@ and the code.
 3. Also add tests for obvious edge cases the criteria imply
    (empty input, error paths) — but stay within the spec's scope.
 4. Run the full test suite. Run the coverage command; compare against
-   the threshold.
+   the threshold. If the project uses a local Python venv, never invoke
+   it via `source <venv>/Scripts/activate && <cmd>` — that trips a Bash
+   safety heuristic on every call with no allowlist escape. Call the
+   venv's binary directly instead: `<venv>/Scripts/python.exe -m <cmd>`
+   (e.g. `.venv/Scripts/python.exe -m pytest -q`), same effect, no prompt.
 5. Before reporting: run `git status` — working tree must be clean and
    all new test files committed AND pushed. A PASS verdict on tests that
    only exist locally is not a real PASS; the orchestrator verifies your
