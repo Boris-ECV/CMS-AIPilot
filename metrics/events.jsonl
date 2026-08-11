@@ -16,3 +16,25 @@
 {"ts":"2026-08-08T08:55:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G2","mode":"manual","result":"approved"}}
 {"ts":"2026-08-08T09:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Awaiting Gate","to":"Done"}}
 {"ts":"2026-08-08T09:50:05Z","event":"session_end","ticket":null,"agent":"orch-20260807-a1c9","data":{"tokens_estimate":"medium-high (full dev/test/review pipeline)","tickets_touched":["SDLCAIP1-1","SDLCAIP1-2"]}}
+{"ts":"2026-08-10T10:33:51Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-10T10:35:15Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-10T10:40:00Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-10T10:40:05Z","event":"gate_review","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-10T10:38:45Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-10T10:39:57Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-10T10:45:00Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-10T10:45:05Z","event":"gate_review","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-10T10:50:00Z","event":"session_end","ticket":null,"agent":"orch-20260810-gm9w","data":{"tokens_estimate":"high (full dev/test/review pipeline x3 stories + 4 refinements + parallel-agent git recovery)","tickets_touched":["SDLCAIP1-4","SDLCAIP1-5","SDLCAIP1-6","SDLCAIP1-7"]}}
+{"ts":"2026-08-11T00:20:40Z","event":"gate_review","ticket":"SDLCAIP1-5","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T00:22:23Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T00:21:19Z","event":"gate_review","ticket":"SDLCAIP1-6","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T00:31:13Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T00:00:00Z","event":"session_start","ticket":null,"agent":"orch-20260811-recover","data":{"note":"resumed session on new day; recovery found SDLCAIP1-5/6 stale Agent Lock (>60min, set 2026-08-10) left over from prior session's unfinished lock-release after Awaiting Gate transition - cleared; both tickets had human GATE APPROVED comments already, merged both PRs (resolved a real git merge conflict between them in src/cms_aipilot/main.py), transitioned both to Done"}}
+{"ts":"2026-08-11T00:35:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Ready","to":"In Progress"}}
+{"ts":"2026-08-11T00:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-11T00:40:12Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-11T00:55:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T00:55:05Z","event":"gate_review","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-11T08:32:29Z","event":"gate_review","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T08:33:50Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T08:33:50Z","event":"session_end","ticket":null,"agent":"orch-20260811-recover","data":{"tokens_estimate":"medium (single story full pipeline + 2 gate merges + conflict resolution)","tickets_touched":["SDLCAIP1-5","SDLCAIP1-6","SDLCAIP1-7"],"note":"stopping per explicit user instruction after SDLCAIP1-7 completion"}}
