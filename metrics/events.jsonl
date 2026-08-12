@@ -162,3 +162,6 @@
 {"ts": "2026-08-12T17:39:56Z", "event": "stage_transition", "ticket": "SDLCAIP1-13", "agent": "orch-20260813-x7q2", "data": {"from": "Awaiting Gate (Designing)", "to": "Ready"}}
 {"ts": "2026-08-12T17:57:09Z", "event": "stage_transition", "ticket": "SDLCAIP1-19", "agent": "orch-20260813-x7q2", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-12T18:03:10Z", "event": "stage_transition", "ticket": "SDLCAIP1-14", "agent": "orch-20260813-x7q2", "data": {"from": "Backlog", "to": "Refining"}}
+{"ts": "2026-08-12T18:10:04Z", "event": "stage_transition", "ticket": "SDLCAIP1-19", "agent": "orch-20260813-x7q2", "data": {"from": "In Progress", "to": "Testing"}}
+{"ts": "2026-08-12T18:14:15Z", "event": "stage_transition", "ticket": "SDLCAIP1-14", "agent": "orch-20260813-x7q2", "data": {"from": "Refining", "to": "Awaiting Gate"}}
+{"ts": "2026-08-12T18:14:15Z", "event": "gate_review", "ticket": "SDLCAIP1-14", "agent": "orch-20260813-x7q2", "data": {"gate": "G1", "mode": "manual", "result": "pending_human", "criteria_results": {"gherkin_present": "PASS", "out_of_scope_declared": "PASS", "no_open_questions": "PASS", "size_ok": "PASS"}}}
