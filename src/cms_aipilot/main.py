@@ -8,11 +8,17 @@ from datetime import datetime
 import bcrypt
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
+from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel, Field
 
-from cms_aipilot.auth import create_access_token, get_admin_password_hash, get_admin_username
+from cms_aipilot.auth import (
+    create_access_token,
+    decode_access_token,
+    get_admin_password_hash,
+    get_admin_username,
+)
 
 app = FastAPI(title="CMS AI Pilot")
 
@@ -34,6 +40,33 @@ _DUMMY_PASSWORD_HASH = bcrypt.hashpw(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+def require_auth(authorization: str | None = Header(default=None)) -> dict:
+    """FastAPI dependency guarding the article endpoints (SDLCAIP1-11).
+
+    Missing header, malformed scheme, or an invalid/expired/bad-signature
+    JWT all map to the same 401 response — never raises anything other
+    than HTTPException, so a malformed header can't crash the server.
+    """
+    scheme, token = get_authorization_scheme_param(authorization or "")
+    if not authorization or scheme.lower() != "bearer" or not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
+
+
+articles_router = APIRouter(dependencies=[Depends(require_auth)])
 
 
 class ArticleCreate(BaseModel):
@@ -94,7 +127,7 @@ def _delete_static_page(article_id: str) -> None:
         raise StaticPageDeletionError(article_id, exc) from exc
 
 
-@app.post("/articles", status_code=201)
+@articles_router.post("/articles", status_code=201)
 def create_article(article: ArticleCreate) -> Article:
     created = Article(id=str(uuid.uuid4()), **article.model_dump())
     table = get_articles_table()
@@ -109,7 +142,7 @@ def create_article(article: ArticleCreate) -> Article:
     return created
 
 
-@app.get("/articles")
+@articles_router.get("/articles")
 def list_articles(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1),
@@ -134,7 +167,7 @@ def list_articles(
     )
 
 
-@app.get("/articles/{article_id}")
+@articles_router.get("/articles/{article_id}")
 def get_article(article_id: str) -> Article:
     table = get_articles_table()
     response = table.get_item(Key={"id": article_id})
@@ -144,7 +177,7 @@ def get_article(article_id: str) -> Article:
     return Article(**item)
 
 
-@app.put("/articles/{article_id}")
+@articles_router.put("/articles/{article_id}")
 def update_article(article_id: str, article: ArticleCreate) -> Article:
     table = get_articles_table()
     existing = table.get_item(Key={"id": article_id})
@@ -163,7 +196,7 @@ def update_article(article_id: str, article: ArticleCreate) -> Article:
     return updated
 
 
-@app.delete("/articles/{article_id}", status_code=204)
+@articles_router.delete("/articles/{article_id}", status_code=204)
 def delete_article(article_id: str) -> Response:
     table = get_articles_table()
     existing = table.get_item(Key={"id": article_id})
@@ -270,3 +303,6 @@ def login(credentials: LoginRequest) -> TokenResponse:
     )
     access_token = create_access_token(subject=admin_username)
     return TokenResponse(access_token=access_token, token_type="bearer")
+
+
+app.include_router(articles_router)
