@@ -16,6 +16,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        if: hashFiles('frontend/package.json') != ''
+        with:
+          node-version: "20"
+
+      - name: Build frontend (needed by tests/e2e/ via vite preview)
+        if: hashFiles('frontend/package.json') != ''
+        run: cd frontend && npm install && npm run build
+
       - name: Install dependencies
         run: pip install -e ".[dev]"
 
