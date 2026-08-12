@@ -27,3 +27,32 @@ jobs:
 
       - name: Test + coverage gate
         run: pytest --cov=src --cov-report=term-missing --cov-fail-under=70 -q
+
+  frontend-quality:
+    runs-on: ubuntu-latest
+    # No-ops until frontend/package.json exists (SDLCAIP1-18). Once it
+    # does, every step below activates automatically — nothing else to
+    # edit here when the frontend scaffold lands.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: hashFiles('frontend/package.json') != ''
+        with:
+          node-version: "20"
+
+      - name: Install frontend dependencies
+        if: hashFiles('frontend/package.json') != ''
+        run: cd frontend && npm install
+
+      - name: Lint frontend
+        if: hashFiles('frontend/package.json') != ''
+        run: cd frontend && npm run lint
+
+      - name: Test frontend
+        if: hashFiles('frontend/package.json') != ''
+        run: cd frontend && npm run test
+
+      - name: Build frontend
+        if: hashFiles('frontend/package.json') != ''
+        run: cd frontend && npm run build
