@@ -40,7 +40,10 @@ conventions:
   notes: >
     e2e 測試用 Playwright(Python, pytest-playwright plugin)。API 測試用
     pytest + httpx 直接測 FastAPI app。e2e 測試在前端骨架建立前先以
-    pytest.mark.skip 佔位。
+    pytest.mark.skip 佔位——僅限骨架建立前。骨架建立後，每張涉及 UI 的
+    Story，tester 必須在 Testing 階段宣告是否需要 e2e 並補上真正執行的
+    測試，不可繼續沿用 skip 佔位（見 docs/02 §3.3、gates.yaml G2
+    e2e_declared_and_honored）。
 
 structure:
   src: "src/cms_aipilot/"

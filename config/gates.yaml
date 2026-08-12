@@ -39,6 +39,13 @@ gates:
         check: "Every item in review checklist has an explicit result"
       - id: coverage_met
         check: "Coverage >= profile.quality.coverage_threshold"
+      - id: e2e_declared_and_honored
+        check: |
+          Testing stage's e2e declaration (docs/02 §3.3) is present in
+          ticket comments. If declared "needs e2e": at least one
+          non-skipped Playwright test under tests/e2e/ was added/changed
+          in this PR's diff and is passing in CI. A skip-only placeholder
+          does not satisfy this — reject and send back to Testing.
 
   G1b:
     name: design-approved
