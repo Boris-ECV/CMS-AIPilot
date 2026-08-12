@@ -71,6 +71,27 @@ JWT/session token,具登入失敗次數限制。
 - 角色型存取控制(RBAC)
 - 速率限制
 
+## SDLCAIP1-18 — 後台前端骨架與登入頁
+
+**使用者故事:** As the sole CMS admin, I want a login form where I enter my username/password to obtain a session, so that I can subsequently access protected backend pages without manually calling the API.
+
+**關鍵行為與決策:**
+- 這是專案第一個涉及後台 UI 的 Story，需從零建立 React+Vite 前端骨架（project-profile.yaml 註記骨架尚未建立）
+- 登入表單呼叫既有 POST /login（SDLCAIP1-10）取得 JWT，成功後儲存 token 並導向文章列表頁
+- 帳密錯誤（401）顯示錯誤訊息、不儲存 token；帳戶鎖定（429）顯示鎖定提示
+- 受保護路由機制：未偵測到已儲存 token 時導向登入頁，不發出該頁面的 API 請求
+- 已登入的 API 呼叫一律帶上 `Authorization: Bearer <token>` header
+- Token 儲存機制（localStorage vs sessionStorage）留給 developer 技術判斷，非需求歧義
+
+**不在此範圍:**
+- 文章列表頁本身內容（另立工單 SDLCAIP1-19）
+- 新增/編輯文章表單（SDLCAIP1-13）
+- 刪除確認互動（SDLCAIP1-14）
+- 搜尋/篩選（SDLCAIP1-16）
+- 登出、Token 刷新、記住我
+- 密碼重設 UI
+- 手機/平板響應式版面（Epic 明定後台僅需桌機版）
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
