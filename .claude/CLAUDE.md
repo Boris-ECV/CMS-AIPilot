@@ -46,8 +46,12 @@ report to the human supervisor.
    Never append via a Bash heredoc with the JSON inline in the command
    text (`cat >> ... << 'EOF' {...} EOF`) — the brace+quote combo trips
    the Bash safety heuristic on every single call. Instead: Write the
-   one-line event JSON to a scratch file, then `cat <scratch-file> >>
-   metrics/events.jsonl` via Bash (docs/07 §1 "如何寫入").
+   one-line event JSON to a scratch file at the FIXED path
+   `.tmp/event.jsonl` (overwrite it each time, never a new filename —
+   `permissions.allow` wildcards only match at the end of the string,
+   not mid-command, so a fixed path is what makes an allow rule stick
+   across calls), then `cat .tmp/event.jsonl >> metrics/events.jsonl`
+   via Bash (docs/07 §1 "如何寫入").
 8. **Respect token discipline** (config/limits.yaml): WIP limit, story cap
    per session, clean wrap-up when context gets heavy.
 
