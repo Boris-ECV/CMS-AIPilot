@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RequireAuth } from "./RequireAuth";
-import { ArticlesPlaceholder } from "../pages/ArticlesPlaceholder";
+import { ArticlesList } from "../pages/ArticlesList";
 import { LoginPage } from "../pages/LoginPage";
 import { setStoredToken } from "./token";
 import { ARTICLES_PATH, LOGIN_PATH } from "../routes";
@@ -13,7 +13,7 @@ function renderProtectedRoute() {
       <Routes>
         <Route path={LOGIN_PATH} element={<LoginPage />} />
         <Route element={<RequireAuth />}>
-          <Route path={ARTICLES_PATH} element={<ArticlesPlaceholder />} />
+          <Route path={ARTICLES_PATH} element={<ArticlesList />} />
         </Route>
       </Routes>
     </MemoryRouter>,
@@ -36,9 +36,19 @@ describe("RequireAuth", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("已登入時可看到受保護頁面內容", () => {
+  it("已登入時可看到受保護頁面內容", async () => {
     setStoredToken("valid-token");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [], total: 0, total_pages: 0, page: 1, page_size: 10 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
     renderProtectedRoute();
-    expect(screen.getByText(/Articles list placeholder/)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("尚無文章")).toBeInTheDocument();
+    });
   });
 });
