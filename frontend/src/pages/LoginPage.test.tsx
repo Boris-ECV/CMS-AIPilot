@@ -91,4 +91,23 @@ describe("LoginPage", () => {
     });
     expect(getStoredToken()).toBeNull();
   });
+
+  it("邊界情況:非 401/429 的錯誤(如 500)顯示通用錯誤訊息、不儲存 token、停留在登入頁", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: "Internal Server Error" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderLoginPage();
+    await fillAndSubmit("admin", "correct-password");
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("登入失敗,請稍後再試");
+    });
+
+    expect(getStoredToken()).toBeNull();
+    expect(screen.getByRole("button", { name: "登入" })).toBeInTheDocument();
+  });
 });
