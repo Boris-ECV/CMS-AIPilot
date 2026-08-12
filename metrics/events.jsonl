@@ -16,3 +16,97 @@
 {"ts":"2026-08-08T08:55:00Z","event":"gate_review","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"gate":"G2","mode":"manual","result":"approved"}}
 {"ts":"2026-08-08T09:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-2","agent":"orch-20260807-a1c9","data":{"from":"Awaiting Gate","to":"Done"}}
 {"ts":"2026-08-08T09:50:05Z","event":"session_end","ticket":null,"agent":"orch-20260807-a1c9","data":{"tokens_estimate":"medium-high (full dev/test/review pipeline)","tickets_touched":["SDLCAIP1-1","SDLCAIP1-2"]}}
+{"ts":"2026-08-10T10:33:51Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-10T10:35:15Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-10T10:40:00Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-10T10:40:05Z","event":"gate_review","ticket":"SDLCAIP1-5","agent":"orch-20260810-gm9w","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-10T10:38:45Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-10T10:39:57Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-10T10:45:00Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-10T10:45:05Z","event":"gate_review","ticket":"SDLCAIP1-6","agent":"orch-20260810-gm9w","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-10T10:50:00Z","event":"session_end","ticket":null,"agent":"orch-20260810-gm9w","data":{"tokens_estimate":"high (full dev/test/review pipeline x3 stories + 4 refinements + parallel-agent git recovery)","tickets_touched":["SDLCAIP1-4","SDLCAIP1-5","SDLCAIP1-6","SDLCAIP1-7"]}}
+{"ts":"2026-08-11T00:20:40Z","event":"gate_review","ticket":"SDLCAIP1-5","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T00:22:23Z","event":"stage_transition","ticket":"SDLCAIP1-5","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T00:21:19Z","event":"gate_review","ticket":"SDLCAIP1-6","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T00:31:13Z","event":"stage_transition","ticket":"SDLCAIP1-6","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T00:00:00Z","event":"session_start","ticket":null,"agent":"orch-20260811-recover","data":{"note":"resumed session on new day; recovery found SDLCAIP1-5/6 stale Agent Lock (>60min, set 2026-08-10) left over from prior session's unfinished lock-release after Awaiting Gate transition - cleared; both tickets had human GATE APPROVED comments already, merged both PRs (resolved a real git merge conflict between them in src/cms_aipilot/main.py), transitioned both to Done"}}
+{"ts":"2026-08-11T00:35:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Ready","to":"In Progress"}}
+{"ts":"2026-08-11T00:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-11T00:40:12Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-11T00:55:00Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T00:55:05Z","event":"gate_review","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-11T08:32:29Z","event":"gate_review","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T08:33:50Z","event":"stage_transition","ticket":"SDLCAIP1-7","agent":"orch-20260811-recover","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T08:33:50Z","event":"session_end","ticket":null,"agent":"orch-20260811-recover","data":{"tokens_estimate":"medium (single story full pipeline + 2 gate merges + conflict resolution)","tickets_touched":["SDLCAIP1-5","SDLCAIP1-6","SDLCAIP1-7"],"note":"stopping per explicit user instruction after SDLCAIP1-7 completion"}}
+{"ts":"2026-08-11T09:03:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"from":"Backlog","to":"Refining"}}
+{"ts":"2026-08-11T09:03:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Backlog","to":"Refining"}}
+{"ts":"2026-08-11T09:04:00Z","event":"gate_review","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"pending_human","criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-11T09:04:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T09:04:30Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"pending_human","criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-11T09:04:30Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T09:06:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Backlog","to":"Refining"}}
+{"ts":"2026-08-11T09:06:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"from":"Backlog","to":"Refining"}}
+{"ts":"2026-08-11T09:10:00Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"pending_human","criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-11T09:10:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T09:10:30Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"pending_human","criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-11T09:10:30Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T09:12:00Z","event":"session_end","ticket":null,"agent":"orch-20260811-a1b2","data":{"tokens_estimate":"medium (4x requirements-analyst delegations + Jira read/writes, no dev/test work this session)","tickets_touched":["SDLCAIP1-8","SDLCAIP1-9","SDLCAIP1-10","SDLCAIP1-11"]}}
+{"ts":"2026-08-11T09:20:00Z","event":"gate_review","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"rejected","reason":"S3 upload failure must block API success"}}
+{"ts":"2026-08-11T09:20:00Z","event":"reopen","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"stage":"Refining","reason_summary":"human rejected S3-failure-is-log-only policy; requires atomic/blocking behavior"}}
+{"ts":"2026-08-11T09:20:00Z","event":"human_intervention","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"kind":"gate_reject"}}
+{"ts":"2026-08-11T09:20:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"from":"Awaiting Gate","to":"Refining"}}
+{"ts":"2026-08-11T09:20:30Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T09:20:30Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Awaiting Gate","to":"Designing"}}
+{"ts":"2026-08-11T09:20:45Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T09:20:45Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Awaiting Gate","to":"Designing"}}
+{"ts":"2026-08-11T09:21:00Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T09:21:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"from":"Awaiting Gate","to":"Designing"}}
+{"ts":"2026-08-11T09:25:00Z","event":"gate_review","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"gate":"G1","mode":"manual","result":"pending_human","reopen_count":1,"criteria_results":{"gherkin_present":"PASS","out_of_scope_declared":"PASS","no_open_questions":"PASS","size_ok":"PASS"}}}
+{"ts":"2026-08-11T09:25:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260811-a1b2","data":{"from":"Refining","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T09:26:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Designing","note":"architect delegated"}}
+{"ts":"2026-08-11T09:26:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Designing","note":"architect delegated"}}
+{"ts":"2026-08-11T09:26:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Designing","note":"architect delegated"}}
+{"ts":"2026-08-11T09:40:00Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"pending_human","criteria_results":{"design_doc_exists":"PASS","interface_declared":"PASS","data_model_declared":"PASS","no_open_design_questions":"PASS"}}}
+{"ts":"2026-08-11T09:40:15Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"pending_human","criteria_results":{"design_doc_exists":"PASS","interface_declared":"PASS","data_model_declared":"PASS","no_open_design_questions":"PASS"}}}
+{"ts":"2026-08-11T09:40:30Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"pending_human","criteria_results":{"design_doc_exists":"PASS","interface_declared":"PASS","data_model_declared":"PASS","no_open_design_questions":"PASS"}}}
+{"ts":"2026-08-11T09:41:00Z","event":"session_end","ticket":null,"agent":"orch-20260811-a1b2","data":{"tokens_estimate":"medium-high (3x architect delegations + 2x requirements-analyst/reporter delegations + extensive Jira read/writes)","tickets_touched":["SDLCAIP1-8","SDLCAIP1-9","SDLCAIP1-10","SDLCAIP1-11"]}}
+{"ts":"2026-08-11T10:00:00Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T10:00:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Ready"}}
+{"ts":"2026-08-11T10:00:15Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T10:00:15Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Ready"}}
+{"ts":"2026-08-11T10:00:30Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"rejected","reason":"align with SDLCAIP1-8's new blocking S3-failure policy"}}
+{"ts":"2026-08-11T10:00:30Z","event":"reopen","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"stage":"Designing","reason_summary":"human decided SDLCAIP1-9 must adopt SDLCAIP1-8's blocking S3-failure policy; spec text also needs updating"}}
+{"ts":"2026-08-11T10:00:30Z","event":"human_intervention","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"kind":"gate_reject"}}
+{"ts":"2026-08-11T10:10:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Ready","to":"In Progress"}}
+{"ts":"2026-08-11T10:20:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Designing","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T10:20:15Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"pending_human","reopen_count":1,"criteria_results":{"design_doc_exists":"PASS","interface_declared":"PASS","data_model_declared":"PASS","no_open_design_questions":"PASS"}}}
+{"ts":"2026-08-11T10:30:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-11T10:35:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Testing","to":"In Review","note":"all AC verified, coverage 96%"}}
+{"ts":"2026-08-11T10:40:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"Testing","to":"In Review","note":"PR #12 opened"}}
+{"ts":"2026-08-11T10:45:00Z","event":"reopen","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"stage":"In Review","reason_summary":"reviewer REQUEST_CHANGES: non-atomic lockout counter update allows race-condition bypass; minor timing side-channel"}}
+{"ts":"2026-08-11T10:50:00Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T10:50:15Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260811-a1b2","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-11T10:55:00Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G1b","mode":"manual","result":"approved","reopen_count":1}}
+{"ts":"2026-08-11T10:55:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Awaiting Gate","to":"Ready"}}
+{"ts":"2026-08-11T11:15:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-11T11:20:00Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T11:20:15Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260811-a1b2","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-11T16:00:00Z","event":"session_start","ticket":null,"agent":"orch-20260812-f3k9","data":{"note":"bootstrap; recovery found 3 approved-but-unprocessed gates (SDLCAIP1-8 G1, SDLCAIP1-9 G2, SDLCAIP1-10 G2)"}}
+{"ts":"2026-08-11T16:17:00Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Designing"}}
+{"ts":"2026-08-11T16:50:00Z","event":"gate_review","ticket":"SDLCAIP1-9","agent":"orch-20260812-f3k9","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T16:50:05Z","event":"stage_transition","ticket":"SDLCAIP1-9","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T16:52:00Z","event":"gate_review","ticket":"SDLCAIP1-10","agent":"orch-20260812-f3k9","data":{"gate":"G2","mode":"manual","result":"approved"}}
+{"ts":"2026-08-11T16:52:05Z","event":"stage_transition","ticket":"SDLCAIP1-10","agent":"orch-20260812-f3k9","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-11T17:04:00Z","event":"gate_review","ticket":"SDLCAIP1-8","agent":"orch-20260812-f3k9","data":{"gate":"G1b","mode":"manual","result":"pending_human","criteria_results":{"design_doc_exists":"PASS","interface_declared":"PASS","data_model_declared":"PASS","no_open_design_questions":"PASS"}}}
+{"ts":"2026-08-11T17:04:05Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260812-f3k9","data":{"from":"Designing","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T17:06:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260812-f3k9","data":{"from":"Ready","to":"In Progress"}}
+{"ts":"2026-08-11T17:40:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260812-f3k9","data":{"from":"In Progress","to":"Testing"}}
+{"ts":"2026-08-11T17:44:00Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260812-f3k9","data":{"from":"Testing","to":"In Review"}}
+{"ts":"2026-08-11T18:04:00Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260812-f3k9","data":{"gate":"G2","mode":"manual","result":"pending_human","criteria_results":{"pr_exists":"PASS","ci_green":"PASS","reviewer_approve":"PASS","checklist_complete":"PASS","coverage_met":"PASS"}}}
+{"ts":"2026-08-11T18:04:05Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260812-f3k9","data":{"from":"In Review","to":"Awaiting Gate"}}
+{"ts":"2026-08-11T18:05:00Z","event":"session_end","ticket":null,"agent":"orch-20260812-f3k9","data":{"tokens_estimate":"high (full recovery + 2 gate merges + 1 full dev/test/review pipeline)","tickets_touched":["SDLCAIP1-8","SDLCAIP1-9","SDLCAIP1-10","SDLCAIP1-11"]}}
+{"ts":"2026-08-12T02:10:00Z","event":"session_start","ticket":null,"agent":"orch-20260812-q3f7","data":{"trigger":"/sdlc-start"}}
+{"ts":"2026-08-12T02:10:20Z","event":"gate_review","ticket":"SDLCAIP1-11","agent":"orch-20260812-q3f7","data":{"gate":"G2","mode":"manual","result":"approved","note":"recovered: human approval found in prior session's last comment, state never advanced"}}
+{"ts":"2026-08-12T02:10:42Z","event":"stage_transition","ticket":"SDLCAIP1-11","agent":"orch-20260812-q3f7","data":{"from":"Awaiting Gate","to":"Done"}}
+{"ts":"2026-08-12T02:10:50Z","event":"gate_review","ticket":"SDLCAIP1-8","agent":"orch-20260812-q3f7","data":{"gate":"G1b","mode":"manual","result":"approved","note":"recovered: human approval found in prior session's last comment, state never advanced"}}
+{"ts":"2026-08-12T02:10:55Z","event":"stage_transition","ticket":"SDLCAIP1-8","agent":"orch-20260812-q3f7","data":{"from":"Awaiting Gate","to":"Ready"}}
