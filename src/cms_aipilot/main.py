@@ -1,3 +1,4 @@
+import html
 import logging
 import math
 import os
@@ -127,8 +128,61 @@ def _delete_static_page(article_id: str) -> None:
         raise StaticPageDeletionError(article_id, exc) from exc
 
 
-@articles_router.post("/articles", status_code=201)
-def create_article(article: ArticleCreate) -> Article:
+class StaticPageGenerationError(Exception):
+    def __init__(self, article_id: str, cause: Exception) -> None:
+        self.article_id = article_id
+        self.cause = cause
+        super().__init__(f"Failed to generate static page for article_id={article_id}: {cause}")
+
+
+def _generate_and_upload_static_page(article: Article) -> None:
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    key = f"articles/{article.id}.html"
+    title = html.escape(article.title)
+    content = html.escape(article.content)
+    body = (
+        "<!DOCTYPE html>"
+        "<html><head><meta charset=\"utf-8\">"
+        f"<title>{title}</title></head>"
+        f"<body><h1>{title}</h1><p>{content}</p></body></html>"
+    )
+    s3 = get_s3_client()
+    try:
+        s3.put_object(Bucket=bucket, Key=key, Body=body, ContentType="text/html")
+    except (BotoCoreError, ClientError) as exc:
+        raise StaticPageGenerationError(article.id, exc) from exc
+
+
+STATIC_PAGE_GENERATION_FAILED_RESPONSE = {
+    "error": "STATIC_PAGE_GENERATION_FAILED",
+    "message": "Article could not be published: static page upload failed.",
+}
+
+
+def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
+    """Upload the static page for `article`; on failure, roll back the
+    DynamoDB write by deleting the item and return the 502 response the
+    caller should return. Returns None on success."""
+    try:
+        _generate_and_upload_static_page(article)
+    except StaticPageGenerationError as upload_exc:
+        try:
+            table.delete_item(Key={"id": article.id})
+        except (BotoCoreError, ClientError) as delete_exc:
+            logger.error(
+                "Failed to roll back DynamoDB item for article_id=%s after static "
+                "page upload failure. Upload failure cause: %s. Rollback delete "
+                "failure cause: %s.",
+                article.id,
+                upload_exc.cause,
+                delete_exc,
+            )
+        return JSONResponse(status_code=502, content=STATIC_PAGE_GENERATION_FAILED_RESPONSE)
+    return None
+
+
+@articles_router.post("/articles", status_code=201, response_model=None)
+def create_article(article: ArticleCreate) -> Article | JSONResponse:
     created = Article(id=str(uuid.uuid4()), **article.model_dump())
     table = get_articles_table()
     table.put_item(
@@ -139,6 +193,9 @@ def create_article(article: ArticleCreate) -> Article:
             "published_at": created.published_at.isoformat(),
         }
     )
+    rollback_response = _publish_or_rollback(created, table)
+    if rollback_response is not None:
+        return rollback_response
     return created
 
 
@@ -177,8 +234,8 @@ def get_article(article_id: str) -> Article:
     return Article(**item)
 
 
-@articles_router.put("/articles/{article_id}")
-def update_article(article_id: str, article: ArticleCreate) -> Article:
+@articles_router.put("/articles/{article_id}", response_model=None)
+def update_article(article_id: str, article: ArticleCreate) -> Article | JSONResponse:
     table = get_articles_table()
     existing = table.get_item(Key={"id": article_id})
     if existing.get("Item") is None:
@@ -193,6 +250,9 @@ def update_article(article_id: str, article: ArticleCreate) -> Article:
             "published_at": updated.published_at.isoformat(),
         }
     )
+    rollback_response = _publish_or_rollback(updated, table)
+    if rollback_response is not None:
+        return rollback_response
     return updated
 
 

@@ -216,10 +216,12 @@ class TestRealValidTokenGrantsAccessPerEndpoint:
 
         return {"Authorization": f"Bearer {create_access_token(subject=ADMIN_USERNAME)}"}
 
-    def test_post_articles_returns_201(self, mock_table, mock_ssm):
-        response = client.post(
-            "/articles", json=VALID_PAYLOAD, headers=self._auth_headers()
-        )
+    def test_post_articles_returns_201(self, mock_table, mock_ssm, monkeypatch):
+        monkeypatch.setenv("ARTICLES_STATIC_BUCKET_NAME", "test-bucket")
+        with patch("cms_aipilot.main.get_s3_client", return_value=MagicMock()):
+            response = client.post(
+                "/articles", json=VALID_PAYLOAD, headers=self._auth_headers()
+            )
         assert response.status_code == 201
 
     def test_get_articles_returns_200(self, mock_table, mock_ssm):
@@ -239,7 +241,8 @@ class TestRealValidTokenGrantsAccessPerEndpoint:
         response = client.get(f"/articles/{ARTICLE_ID}", headers=self._auth_headers())
         assert response.status_code == 200
 
-    def test_put_article_returns_200(self, mock_table, mock_ssm):
+    def test_put_article_returns_200(self, mock_table, mock_ssm, monkeypatch):
+        monkeypatch.setenv("ARTICLES_STATIC_BUCKET_NAME", "test-bucket")
         mock_table.get_item.return_value = {
             "Item": {
                 "id": ARTICLE_ID,
@@ -248,9 +251,10 @@ class TestRealValidTokenGrantsAccessPerEndpoint:
                 "published_at": "2026-01-01T00:00:00",
             }
         }
-        response = client.put(
-            f"/articles/{ARTICLE_ID}", json=VALID_PAYLOAD, headers=self._auth_headers()
-        )
+        with patch("cms_aipilot.main.get_s3_client", return_value=MagicMock()):
+            response = client.put(
+                f"/articles/{ARTICLE_ID}", json=VALID_PAYLOAD, headers=self._auth_headers()
+            )
         assert response.status_code == 200
 
     def test_delete_article_returns_204(self, mock_table, mock_ssm, monkeypatch):
