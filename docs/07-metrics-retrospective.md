@@ -40,10 +40,21 @@
 「expansion obfuscation」，每次都跳出確認提示，且這不是 `permissions.allow` 能關掉的
 （那是不同層的檢查）。
 
-正確做法：**先用 Write 工具**把單行事件 JSON 寫進一個暫存檔（例如
-`.tmp/event.jsonl`），**再用 Bash 執行純淨的 `cat .tmp/event.jsonl >> metrics/events.jsonl`**
-——這樣 Bash 指令文字本身不含任何大括號/引號組合，從源頭避開誤判，不需要每次跟安全
-檢查交涉。寫入後可視需要刪除暫存檔（非必要，覆蓋寫入即可）。
+正確做法：**先用 Write 工具**把單行事件 JSON 寫進暫存檔**固定路徑
+`.tmp/event.jsonl`**（每次覆蓋寫入同一個檔名，不要每次換一個新檔名——
+檔名固定，`permissions.allow` 才能用一條字首比對規則長期涵蓋，不會每次
+因為檔名不同又要重新累積），**再用 Bash 執行純淨的
+`cat .tmp/event.jsonl >> metrics/events.jsonl`**——這樣 Bash 指令文字本身
+不含任何大括號/引號組合，從源頭避開誤判，不需要每次跟安全檢查交涉。
+
+⚠️ Claude Code 的 `permissions.allow` 萬用字元 `*` **只在字尾生效**（純字首
+比對），寫在指令文字中間的 `*` 會被當成字面字元、不會展開比對，加了也是
+白加。要放行「`cat .tmp/event.jsonl >> metrics/events.jsonl` 後面接不同
+後綴指令（例如 `&& tail -3 ...`、`&& rm .tmp/event.jsonl`）」這種情境，
+規則要寫成 `Bash(cat .tmp/event.jsonl >> metrics/events.jsonl*)`——固定的
+部分完整照字面寫、只在最後面加一個 `*`，不要在檔名或路徑中間放萬用字元。
+
+寫入後可視需要刪除暫存檔（非必要，下次覆蓋寫入即可）。
 
 ## 2. 派生指標（週回顧時由 reporter 聚合）
 
