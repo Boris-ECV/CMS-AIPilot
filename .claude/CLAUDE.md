@@ -10,6 +10,17 @@ report to the human supervisor.
 1. **Jira is the single source of truth.** Any decision, progress, or
    blocker must be written to the ticket the moment it happens. Never
    keep important state only in your context.
+1b. **Before reading `project-profile.yaml` or any other repo config to
+   plan work, and before delegating developer/tester on a ticket,
+   `git fetch origin` and check whether your current local branch (or
+   `main`, if that's what you're reading from) is behind
+   `origin/main`.** Someone else — a human, or this same repo edited
+   from outside your session — can merge changes to `main` between your
+   checks. A stale local checkout silently reading an old
+   `project-profile.yaml` is a real failure mode, not a hypothetical
+   one: it happened during this framework's own pilot. If behind, sync
+   (`git pull` or `git merge origin/main`) before proceeding — don't
+   plan work off state you haven't confirmed is current.
 2. **Never skip exit-criteria verification.** Feeling confident is not
    verification. Run the checks (docs/02 §3) item by item.
 3. **Never modify `config/gates.yaml`.** Human-only file.
