@@ -28,11 +28,18 @@ and the code.
    safety heuristic on every call with no allowlist escape. Call the
    venv's binary directly instead: `<venv>/Scripts/python.exe -m <cmd>`
    (e.g. `.venv/Scripts/python.exe -m pytest -q`), same effect, no prompt.
-5. Before reporting: run `git status` — working tree must be clean and
+5. Declare e2e need (docs/02 §3.3): does this story add/change any
+   user-facing UI behavior (pages, forms, interactions)? State "needs
+   e2e" or "no e2e needed" + a one-line reason in your report. If
+   "needs e2e": write at least one real Playwright test under
+   `tests/e2e/` covering it, actually run it (not `pytest.mark.skip`),
+   and include its result. A skip-only placeholder does not satisfy
+   this — G2 will reject on it.
+6. Before reporting: run `git status` — working tree must be clean and
    all new test files committed AND pushed. A PASS verdict on tests that
    only exist locally is not a real PASS; the orchestrator verifies your
    work by pulling the branch, not by trusting this report.
-6. Rules:
+7. Rules:
    - NEVER modify production code. If the implementation is wrong,
      document the failure precisely and report back.
    - NEVER delete or weaken existing tests.
@@ -41,5 +48,6 @@ and the code.
 - Mapping table: acceptance criterion -> test name(s)
 - Full-suite result (pass/fail; if fail: exact failing tests + causes)
 - Coverage % vs threshold
+- e2e declaration: needs e2e / no e2e needed + reason (+ result if needed)
 - Verdict: PASS or FAIL(<precise failure description for the developer>)
 Keep it ≤ 30 lines plus the mapping table.

@@ -75,10 +75,12 @@
   1. 對照需求規格的每條 Gherkin 驗收條件撰寫自動化測試
   2. 執行全部測試；失敗 → 在工單留言記錄失敗細節，狀態退回 In Progress（developer 修復；此為一次「reopen」，記入指標）
   3. 檢查覆蓋率是否達 profile 門檻
+  4. **明確宣告本張 Story 是否需要 e2e 覆蓋**：本 Story 是否新增/變更任何使用者可見的 UI 行為（頁面、表單、互動）？在留言中一句話寫明「需要 e2e」或「不需要 e2e」+ 理由（例如「純後端 API 變更，無 UI 介面」）。**需要時**：`tests/e2e/` 下必須有本 Story 新增/變更的 Playwright 測試，且**真的被執行、通過**，不可只是 `pytest.mark.skip` 佔位。
 - **退出條件**：
   - [ ] 每條驗收條件至少對應一個自動化測試（在留言中列出對照表）
   - [ ] 全部測試通過
   - [ ] 覆蓋率 ≥ `profile.quality.coverage_threshold`
+  - [ ] e2e 宣告存在（需要/不需要 + 理由）；若宣告「需要」，對應的非 skip Playwright 測試已存在且通過
 
 ### 3.4 Review 階段（In Review）
 
