@@ -71,6 +71,27 @@ JWT/session token,具登入失敗次數限制。
 - 角色型存取控制(RBAC)
 - 速率限制
 
+## SDLCAIP1-13 — 後台新增/編輯文章表單
+
+**使用者故事:** As the sole CMS admin, I want a form where I can create a new article or edit an existing one (title, plain-text content, publish date/time), so that I can publish and update content on the site without calling the API manually.
+
+**驗收條件 (Gherkin, 12 scenarios):**
+- 開啟新增表單欄位為空
+- 開啟編輯表單欄位預先填入既有文章資料（GET /articles/{id} 200）
+- 開啟編輯表單但文章已不存在（GET /articles/{id} 404，顯示找不到文章、不顯示表單）
+- 成功建立新文章（POST /articles，201 後導向列表頁）
+- 成功編輯既有文章（PUT /articles/{id}，200 後導向列表頁）
+- 驗證錯誤—標題為空（前端擋，不導向，保留其他欄位）
+- 驗證錯誤—內容為空（同上）
+- 驗證錯誤—後端回傳422（顯示通用錯誤訊息，不導向）
+- 儲存失敗—靜態頁上傳失敗502（既有後端行為：PUT 情境下該文章已被後端整筆刪除作為回滾；前端須顯示明確失敗訊息，不得宣稱已儲存成功，不導向）
+- 送出表單時token已失效401（前端清除token並導向登入頁）
+- 取消編輯返回列表頁（不呼叫API）
+
+**範圍外:** 分類/標籤/草稿狀態欄位（Epic 明定無）; 富文本編輯器（content為純文字）; 圖片/附件上傳; 表單自動儲存草稿/離開頁面二次確認彈窗; 文章列表頁本身（SDLCAIP1-19）、刪除確認互動（SDLCAIP1-14）、搜尋/篩選（SDLCAIP1-16）; 後端API契約變更（不重新設計，純消費既有API）; 手機/平板響應式版面; 401全域攔截器的實作位置（技術決策，留給developer）。
+
+**依賴:** SDLCAIP1-18（前端骨架/API client/認證慣例，已Done）; SDLCAIP1-19（文章列表頁提供新增/編輯入口，目前Designing階段，路由尚未定稿，本票表單本身可獨立開發測試）; 外部依賴既有後端API POST/PUT /articles、GET /articles/{id}（SDLCAIP1-4/6/8，已Done）。
+
 ## SDLCAIP1-18 — 後台前端骨架與登入頁
 
 **使用者故事:** As the sole CMS admin, I want a login form where I enter my username/password to obtain a session, so that I can subsequently access protected backend pages without manually calling the API.
@@ -91,6 +112,21 @@ JWT/session token,具登入失敗次數限制。
 - 登出、Token 刷新、記住我
 - 密碼重設 UI
 - 手機/平板響應式版面（Epic 明定後台僅需桌機版）
+
+## SDLCAIP1-19 — 後台文章列表頁(桌機版)
+
+**使用者故事:** As the sole CMS admin, I want to see a desktop list of my articles (title, published date) with pagination, so that I can review existing content and reach the edit/delete actions for a specific article.
+
+**驗收條件 (Gherkin, 5 scenarios):**
+- 有資料時列表正常呈現（依 API 順序顯示標題與 published_at）
+- 空列表狀態（total=0 顯示「尚無文章」空狀態訊息，不顯示表格列）
+- 未帶有效 token 導向登入頁（401 時依 RequireAuth 機制導向登入頁，不顯示文章資料）
+- 分頁行為與 API 回傳一致（page/page_size=10，點擊下一頁改用 page=2 呼叫 GET /articles）
+- 每列提供編輯/刪除入口（實際導覽與行為由 SDLCAIP1-13、SDLCAIP1-14 實作，本故事僅需入口存在）
+
+**範圍外:** 登入頁與前端骨架本身（SDLCAIP1-18）; 新增/編輯文章表單內容與送出邏輯（SDLCAIP1-13）; 刪除確認互動與實際刪除呼叫（SDLCAIP1-14）; 搜尋/篩選（SDLCAIP1-16）; 手機/平板響應式版面; 內文摘要/snippet 顯示（GET /articles 僅回傳 ArticleSummary，不含 content）; 依欄位排序、批量操作、即時更新。
+
+**依賴:** blocked by SDLCAIP1-18（已 Done）; 外部依賴 GET /articles（SDLCAIP1-5，已 Done，含 JWT 保護 SDLCAIP1-11）。
 
 ## 待補(reporter 下次執行時處理)
 
