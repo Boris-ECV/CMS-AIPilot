@@ -19,7 +19,8 @@ stack:
   notes: >
     後端 FastAPI + Mangum 跑在 AWS Lambda 上(serverless),前端 React+Vite
     SPA 作為後台編輯介面(不對外服務,前台輸出物是靜態 HTML)。IaC 用 AWS CDK
-    (Python)。前端骨架尚未建立,將在第一個涉及後台 UI 的 Story 時建立。
+    (Python)。前端骨架由 SDLCAIP1-18 建立(TypeScript、react-router、
+    vitest + @testing-library/react,見 docs/design/SDLCAIP1-18.md)。
 
 commands:
   setup: "pip install -e \".[dev]\""
@@ -27,6 +28,10 @@ commands:
   test: "pytest -q"
   lint: "ruff check ."
   coverage: "pytest --cov=src --cov-report=term-missing -q"
+  frontend_setup: "cd frontend && npm install"
+  frontend_build: "cd frontend && npm run build"
+  frontend_test: "cd frontend && npm run test"
+  frontend_lint: "cd frontend && npm run lint"
 
 quality:
   coverage_threshold: 70
@@ -47,7 +52,8 @@ conventions:
 
 structure:
   src: "src/cms_aipilot/"
-  tests: "tests/ (tests/e2e/ for Playwright)"
+  frontend: "frontend/ (Vite+React+TypeScript admin UI; independent of the backend Lambda deploy unit — see docs/design/SDLCAIP1-18.md)"
+  tests: "tests/ (tests/e2e/ for Playwright); frontend tests live alongside source as frontend/src/**/*.test.tsx"
   docs: "docs/ (framework docs, not product docs)"
 
 deployment:
