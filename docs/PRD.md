@@ -144,6 +144,56 @@ JWT/session token,具登入失敗次數限制。
 
 **依賴:** blocked by SDLCAIP1-19（已 Done，合併至 main，提供 data-testid="delete-article-{id}" 按鈕與 useHandleUnauthorized hook）; blocked by SDLCAIP1-7、SDLCAIP1-9（皆已 Done）。
 
+## SDLCAIP1-20 — 前台文章詳細頁靜態輸出(含響應式版面)
+
+**使用者故事:** As a 網站訪客, I want 開啟文章詳細頁能看到完整標題、內容與發布時間，且版面在手機/平板/桌機都正常顯示, so that 我能在任何裝置上舒適閱讀文章內容。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 文章詳細頁顯示完整內容
+  Given 一篇已發布的文章（標題、純文字內文、發布時間）
+  When 靜態頁面產生後於瀏覽器開啟該文章的靜態頁
+  Then 頁面顯示文章標題、內文全文、發布時間
+```
+
+```gherkin
+Scenario: 手機寬度版面正常顯示
+  Given 文章詳細頁已產生
+  When 以手機寬度（<768px）檢視頁面
+  Then 內容單欄顯示、無橫向捲動、文字可讀不溢出
+```
+
+```gherkin
+Scenario: 平板寬度版面正常顯示
+  Given 文章詳細頁已產生
+  When 以平板寬度（768px–1024px）檢視頁面
+  Then 版面依平板寬度調整、無橫向捲動
+```
+
+```gherkin
+Scenario: 桌機寬度版面正常顯示
+  Given 文章詳細頁已產生
+  When 以桌機寬度（>1024px）檢視頁面
+  Then 版面套用桌機排版（如內容最大寬度限制、置中）、無橫向捲動
+```
+
+```gherkin
+Scenario: 文章內容含特殊字元時正確逸出
+  Given 文章標題或內文含 HTML 特殊字元（如 <, &, "）
+  When 靜態頁面產生
+  Then 輸出的 HTML 已正確逸出，不造成標籤注入
+```
+
+**不在此範圍:**
+- 首頁文章列表與分頁（另立工單處理）
+- 前端搜尋功能（SDLCAIP1-16，獨立工單）
+- 已刪除/不存在文章的「找不到」自訂頁面設計（屬列表頁工單範圍；本工單僅負責「存在文章」的正常渲染）
+- 後台管理 UI（frontend/ SPA，屬 SDLCAIP1-13/14/18/19 範圍）
+- SEO meta（OG tag、sitemap 等）未在 Epic 中提及，不做
+
+**依賴:** 工單依賴：SDLCAIP1-8（既有的產生/上傳觸發邏輯，本工單只改動 `_generate_and_upload_static_page` 產出的 HTML 內容與樣式，不改動觸發時機）; 外部依賴：AWS S3（既有 bucket，`ARTICLES_STATIC_BUCKET_NAME`）。
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
