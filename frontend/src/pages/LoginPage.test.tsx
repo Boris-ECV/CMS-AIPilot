@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginPage } from "./LoginPage";
-import { ArticlesPlaceholder } from "./ArticlesPlaceholder";
+import { ArticlesList } from "./ArticlesList";
 import { getStoredToken } from "../auth/token";
 import { ARTICLES_PATH, LOGIN_PATH } from "../routes";
 
@@ -12,10 +12,27 @@ function renderLoginPage() {
     <MemoryRouter initialEntries={[LOGIN_PATH]}>
       <Routes>
         <Route path={LOGIN_PATH} element={<LoginPage />} />
-        <Route path={ARTICLES_PATH} element={<ArticlesPlaceholder />} />
+        <Route path={ARTICLES_PATH} element={<ArticlesList />} />
       </Routes>
     </MemoryRouter>,
   );
+}
+
+function mockFetchForLoginThenArticles(loginResponse: {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+}) {
+  return vi.fn().mockImplementation((url: string) => {
+    if (typeof url === "string" && url.includes("/articles")) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ items: [], total: 0, total_pages: 0, page: 1, page_size: 10 }),
+      });
+    }
+    return Promise.resolve(loginResponse);
+  });
 }
 
 async function fillAndSubmit(username: string, password: string) {
@@ -32,7 +49,7 @@ describe("LoginPage", () => {
   });
 
   it("AC1: 登入成功時呼叫 POST /login、儲存 token 並導向 /articles", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
+    const fetchMock = mockFetchForLoginThenArticles({
       ok: true,
       status: 200,
       json: async () => ({ access_token: "jwt-token-123", token_type: "bearer" }),
@@ -43,7 +60,7 @@ describe("LoginPage", () => {
     await fillAndSubmit("admin", "correct-password");
 
     await waitFor(() => {
-      expect(screen.getByText(/Articles list placeholder/)).toBeInTheDocument();
+      expect(screen.getByText("尚無文章")).toBeInTheDocument();
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
