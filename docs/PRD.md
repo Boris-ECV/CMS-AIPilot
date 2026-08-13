@@ -128,6 +128,22 @@ JWT/session token,具登入失敗次數限制。
 
 **依賴:** blocked by SDLCAIP1-18（已 Done）; 外部依賴 GET /articles（SDLCAIP1-5，已 Done，含 JWT 保護 SDLCAIP1-11）。
 
+## SDLCAIP1-14 — 後台刪除確認互動
+
+**使用者故事:** As a 後台唯一管理者, I want 在文章列表點擊「刪除」後先看到明確的確認步驟才真正送出刪除, so that 我不會因誤觸而意外刪除已發布的文章。
+
+**驗收條件 (Gherkin, 6 scenarios):**
+- 確認後成功刪除文章 — 點擊刪除→確認刪除→呼叫 DELETE /articles/{id}→204→文章自列表移除，其餘不變
+- 取消確認不會刪除文章 — 點擊刪除→取消→不呼叫 API，文章仍在列表
+- 刪除已不存在的文章（404）— 確認刪除→404→視為已不存在，從列表移除，顯示非阻斷提示
+- 刪除時未登入或憑證過期（401）— 確認刪除→401→呼叫既有 useHandleUnauthorized 清除 token→導向登入頁
+- 資料庫刪除成功但靜態頁清除失敗（502, error_code=STATIC_PAGE_DELETION_FAILED）— 視為已刪除，從列表移除，顯示非阻斷警示
+- 非預期錯誤（其他 5xx/網路例外）— 不移除文章，顯示通用錯誤訊息，可重試
+
+**範圍外:** 確認 UI 元件形式（原生 confirm() vs 自訂 Modal，留給開發階段決定）; 批量刪除; 刪除復原(undo); 訊息文案樣式設計; 刪除造成分頁狀態調整; ArticlesList.tsx 以外頁面的刪除入口; 編輯功能(SDLCAIP1-13); 後端 DELETE 端點行為變更(已完成)。
+
+**依賴:** blocked by SDLCAIP1-19（已 Done，合併至 main，提供 data-testid="delete-article-{id}" 按鈕與 useHandleUnauthorized hook）; blocked by SDLCAIP1-7、SDLCAIP1-9（皆已 Done）。
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
