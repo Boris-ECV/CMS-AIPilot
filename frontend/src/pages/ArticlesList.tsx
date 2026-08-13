@@ -19,6 +19,7 @@ export function ArticlesList() {
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const handleUnauthorized = useHandleUnauthorized();
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export function ArticlesList() {
     if (!confirmed) return;
 
     setNotice(null);
-    setError(null);
+    setDeleteError(null);
     try {
       await deleteArticle(article.id);
       setArticles((current) => current.filter((item) => item.id !== article.id));
@@ -75,7 +76,7 @@ export function ArticlesList() {
         setNotice(DELETE_STATIC_PAGE_WARNING);
         return;
       }
-      setError(DELETE_GENERIC_ERROR_MESSAGE);
+      setDeleteError(DELETE_GENERIC_ERROR_MESSAGE);
     }
   }
 
@@ -95,6 +96,7 @@ export function ArticlesList() {
   return (
     <div>
       {notice && <p role="status">{notice}</p>}
+      {deleteError && <p role="alert">{deleteError}</p>}
       <table>
         <thead>
           <tr>
