@@ -180,3 +180,4 @@
 {"ts": "2026-08-13T07:50:21Z", "event": "reopen", "ticket": "SDLCAIP1-14", "agent": "orch-20260813-recover", "data": {"from_stage": "Testing", "to_stage": "In Progress", "reason": "AC6 violated: generic delete error hides the whole article list instead of keeping it visible", "reopen_count": 1}}
 {"ts": "2026-08-13T08:15:02Z", "event": "gate_review", "ticket": "SDLCAIP1-20", "agent": "orch-20260813-recover", "data": {"gate": "G1b", "mode": "manual", "result": "pending_human"}}
 {"ts": "2026-08-13T08:15:02Z", "event": "stage_transition", "ticket": "SDLCAIP1-20", "agent": "orch-20260813-recover", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-13T08:18:23Z", "event": "stage_transition", "ticket": "SDLCAIP1-14", "agent": "orch-20260813-recover", "data": {"from": "In Progress", "to": "Testing", "note": "AC6 fix re-submitted for re-verification"}}
