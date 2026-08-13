@@ -47,12 +47,22 @@
 `cat .tmp/event.jsonl >> metrics/events.jsonl`**——這樣 Bash 指令文字本身
 不含任何大括號/引號組合，從源頭避開誤判，不需要每次跟安全檢查交涉。
 
-⚠️ Claude Code 的 `permissions.allow` 萬用字元 `*` **只在字尾生效**（純字首
-比對），寫在指令文字中間的 `*` 會被當成字面字元、不會展開比對，加了也是
-白加。要放行「`cat .tmp/event.jsonl >> metrics/events.jsonl` 後面接不同
-後綴指令（例如 `&& tail -3 ...`、`&& rm .tmp/event.jsonl`）」這種情境，
-規則要寫成 `Bash(cat .tmp/event.jsonl >> metrics/events.jsonl*)`——固定的
-部分完整照字面寫、只在最後面加一個 `*`，不要在檔名或路徑中間放萬用字元。
+⚠️ 兩個容易讓 `permissions.allow` 規則對不上的坑，都是這次冒煙測試實測
+踩出來的，不是憑空推測：
+
+1. **Bash 指令實際執行時，Claude Code 常會自動補上 `cd "<專案根目錄的絕對
+   路徑>" && ` 前綴**（例如 `cd "D:\Programming\Projects\CMS-AIPilot" &&
+   cat .tmp/event.jsonl >> metrics/events.jsonl`），不是你在委派指令裡打的
+   單純 `cat ...`。寫 `permissions.allow` 規則時，**要用實際跳出來的確認
+   提示裡逐字顯示的完整指令去對**，不要只憑自己以為的指令去猜——這是
+   前幾輪一直對不上的真正原因，不是萬用字元語意的問題。
+2. `permissions.allow` 萬用字元 `*` 只在字尾生效（純字首比對），寫在指令
+   文字中間的 `*` 會被當成字面字元、不會展開比對。要放行「固定前綴 + 後面
+   接不同後綴指令」的情境，規則要把固定部分（含 `cd "..." && ` 前綴）完整
+   照字面寫、只在最後面加一個 `*`。
+
+實務上最可靠的做法：**跳出確認提示時，直接看提示裡顯示的完整指令文字，
+複製貼上去寫規則**，不要憑印象重建指令字串。
 
 寫入後可視需要刪除暫存檔（非必要，下次覆蓋寫入即可）。
 
