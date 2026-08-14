@@ -199,11 +199,16 @@ STATIC_PAGE_GENERATION_FAILED_RESPONSE = {
 
 
 def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
-    """Upload the static page for `article`; on failure, roll back the
-    DynamoDB write by deleting the item and return the 502 response the
-    caller should return. Returns None on success."""
+    """Upload the static page for `article` and regenerate all homepage
+    list pages; on failure of either step, roll back the DynamoDB write by
+    deleting the item and return the 502 response the caller should
+    return. Returns None on success.
+
+    Used by update_article (SDLCAIP1-24); create_article uses the
+    separate _publish_article_and_lists_or_rollback."""
     try:
         _generate_and_upload_static_page(article)
+        _generate_and_upload_list_pages(table)
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -283,7 +288,11 @@ def _generate_and_upload_list_pages(table) -> None:
     """對 `table` 做 ConsistentRead=True 的 scan()，依 published_at 由新到舊
     排序，依 LIST_PAGE_SIZE 切頁，對每一頁呼叫 _render_list_page_html 並
     s3.put_object 上傳（key 用 _list_page_key）。任一頁上傳失敗即拋出
-    StaticPageGenerationError(f"list-page-{page}", exc)，中止後續頁面上傳。"""
+    StaticPageGenerationError(f"list-page-{page}", exc)，中止後續頁面上傳。
+
+    total_pages 至少為 1：即使 table 目前沒有任何文章（total == 0），仍會產生並
+    上傳第 1 頁（index.html）作為空狀態頁面（page_items 為空、total_pages=1），
+    確保 S3 上的列表頁不會停留在刪除前的舊內容。"""
     bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
     s3 = get_s3_client()
 
@@ -292,7 +301,7 @@ def _generate_and_upload_list_pages(table) -> None:
     items.sort(key=lambda item: item["published_at"], reverse=True)
 
     total = len(items)
-    total_pages = math.ceil(total / LIST_PAGE_SIZE) if total else 0
+    total_pages = max(1, math.ceil(total / LIST_PAGE_SIZE)) if total else 1
 
     for page in range(1, total_pages + 1):
         start = (page - 1) * LIST_PAGE_SIZE
@@ -423,6 +432,21 @@ def delete_article(article_id: str) -> Response:
             content={
                 "error_code": "STATIC_PAGE_DELETION_FAILED",
                 "detail": "Article deleted but its static page could not be removed from S3.",
+                "article_id": article_id,
+            },
+        )
+
+    try:
+        _generate_and_upload_list_pages(table)
+    except StaticPageGenerationError:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error_code": "STATIC_LIST_PAGE_REGENERATION_FAILED",
+                "detail": (
+                    "Article deleted but the homepage list pages could not be "
+                    "regenerated."
+                ),
                 "article_id": article_id,
             },
         )

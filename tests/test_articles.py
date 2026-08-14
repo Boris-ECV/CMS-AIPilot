@@ -83,8 +83,15 @@ class TestCreateArticleStaticPageUploadSuccess:
         payload = {**VALID_PAYLOAD, "title": "<b>Hi</b>", "content": "<script>x</script>"}
         response = client.post("/articles", json=payload)
         article_id = response.json()["id"]
-        mock_s3.put_object.assert_called_once()
-        call_kwargs = mock_s3.put_object.call_args.kwargs
+        # SDLCAIP1-23: create_article also regenerates the homepage list
+        # pages, so look up the article-page call specifically rather than
+        # asserting a single put_object call overall.
+        article_page_call = next(
+            c
+            for c in mock_s3.put_object.call_args_list
+            if c.kwargs["Key"] == f"articles/{article_id}.html"
+        )
+        call_kwargs = article_page_call.kwargs
         assert call_kwargs["Bucket"] == "test-articles-static-bucket"
         assert call_kwargs["Key"] == f"articles/{article_id}.html"
         assert "<script>" not in call_kwargs["Body"]
@@ -234,8 +241,15 @@ class TestUpdateArticleStaticPageUploadSuccess:
         mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
         response = client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
         assert response.status_code == 200
-        mock_s3.put_object.assert_called_once()
-        call_kwargs = mock_s3.put_object.call_args.kwargs
+        # SDLCAIP1-24: update_article also regenerates the homepage list
+        # pages, so look up the article-page call specifically rather than
+        # asserting a single put_object call overall.
+        article_page_call = next(
+            c
+            for c in mock_s3.put_object.call_args_list
+            if c.kwargs["Key"] == f"articles/{EXISTING_ITEM['id']}.html"
+        )
+        call_kwargs = article_page_call.kwargs
         assert call_kwargs["Bucket"] == "test-articles-static-bucket"
         assert call_kwargs["Key"] == f"articles/{EXISTING_ITEM['id']}.html"
 
@@ -430,3 +444,125 @@ class TestDeleteArticleStaticPageDeletionFails:
         error_records = [r for r in caplog.records if r.levelno == logging.ERROR]
         assert len(error_records) == 1
         assert EXISTING_ITEM["id"] in error_records[0].getMessage()
+
+
+class TestUpdateArticleRegeneratesListPages:
+    """SDLCAIP1-24 AC1: update_article 成功後重新產生並上傳受影響的列表分頁"""
+
+    def test_list_page_uploaded_after_update(self, mock_table, mock_s3):
+        updated_item = {**EXISTING_ITEM, **UPDATE_PAYLOAD}
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_table.scan.return_value = {"Items": [updated_item]}
+        client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+
+        index_call = next(
+            c for c in mock_s3.put_object.call_args_list if c.kwargs["Key"] == "index.html"
+        )
+        assert index_call.kwargs["Bucket"] == "test-articles-static-bucket"
+        assert UPDATE_PAYLOAD["title"] in index_call.kwargs["Body"]
+
+    def test_updated_article_appears_at_correct_sort_position(self, mock_table, mock_s3):
+        """新的 published_at 應排在較舊文章之前（新到舊排序）"""
+        older_item = {
+            "id": "older-id",
+            "title": "Older Article",
+            "content": "Older content.",
+            "published_at": "2020-01-01T00:00:00",
+        }
+        updated_item = {**EXISTING_ITEM, **UPDATE_PAYLOAD}
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_table.scan.return_value = {"Items": [older_item, updated_item]}
+        client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+
+        index_call = next(
+            c for c in mock_s3.put_object.call_args_list if c.kwargs["Key"] == "index.html"
+        )
+        body = index_call.kwargs["Body"]
+        assert body.index(UPDATE_PAYLOAD["title"]) < body.index(older_item["title"])
+
+    def test_list_page_upload_failure_returns_502_and_rolls_back(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_table.scan.return_value = {"Items": [EXISTING_ITEM]}
+
+        def put_object_side_effect(**kwargs):
+            if kwargs["Key"] == "index.html":
+                raise ClientError(
+                    {"Error": {"Code": "InternalError", "Message": "boom"}}, "PutObject"
+                )
+
+        mock_s3.put_object.side_effect = put_object_side_effect
+        response = client.put(f"/articles/{EXISTING_ITEM['id']}", json=UPDATE_PAYLOAD)
+
+        assert response.status_code == 502
+        assert response.json() == {
+            "error": "STATIC_PAGE_GENERATION_FAILED",
+            "message": "Article could not be published: static page upload failed.",
+        }
+        mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
+
+
+class TestDeleteArticleRegeneratesListPages:
+    """SDLCAIP1-24 AC2/AC3: delete_article 成功後重新產生並上傳受影響的列表分頁"""
+
+    def test_list_page_uploaded_after_delete_no_longer_contains_deleted_article(
+        self, mock_table, mock_s3
+    ):
+        remaining_item = {
+            "id": "remaining-id",
+            "title": "Remaining Article",
+            "content": "Remaining content.",
+            "published_at": "2025-01-01T00:00:00",
+        }
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        # After the DynamoDB delete, a fresh scan no longer includes the
+        # deleted article.
+        mock_table.scan.return_value = {"Items": [remaining_item]}
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+
+        assert response.status_code == 204
+        index_call = next(
+            c for c in mock_s3.put_object.call_args_list if c.kwargs["Key"] == "index.html"
+        )
+        assert EXISTING_ITEM["title"] not in index_call.kwargs["Body"]
+        assert remaining_item["title"] in index_call.kwargs["Body"]
+
+    def test_deleting_last_article_regenerates_empty_state_index_page(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_table.scan.return_value = {"Items": []}
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+
+        assert response.status_code == 204
+        index_call = next(
+            c for c in mock_s3.put_object.call_args_list if c.kwargs["Key"] == "index.html"
+        )
+        assert '<ul class="article-list"></ul>' in index_call.kwargs["Body"]
+
+    def test_list_page_upload_failure_returns_502_without_rollback(self, mock_table, mock_s3):
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_table.scan.return_value = {"Items": []}
+        mock_s3.put_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "PutObject"
+        )
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+
+        assert response.status_code == 502
+        body = response.json()
+        assert body["error_code"] == "STATIC_LIST_PAGE_REGENERATION_FAILED"
+        assert body["article_id"] == EXISTING_ITEM["id"]
+        # DynamoDB delete already happened and is not rolled back.
+        mock_table.delete_item.assert_called_once_with(Key={"id": EXISTING_ITEM["id"]})
+
+    def test_static_page_deletion_failure_skips_list_page_regeneration(
+        self, mock_table, mock_s3
+    ):
+        """單篇靜態頁刪除失敗時，不嘗試列表頁重新產生（維持既有順序）"""
+        mock_table.get_item.return_value = {"Item": EXISTING_ITEM}
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "InternalError", "Message": "boom"}}, "DeleteObject"
+        )
+        response = client.delete(f"/articles/{EXISTING_ITEM['id']}")
+
+        assert response.status_code == 502
+        assert response.json()["error_code"] == "STATIC_PAGE_DELETION_FAILED"
+        mock_table.scan.assert_not_called()
+        mock_s3.put_object.assert_not_called()
