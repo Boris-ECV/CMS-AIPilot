@@ -19,6 +19,14 @@ You do not write production code and you do not touch tests.
 - project-profile.yaml stack declaration (language, frameworks, DB)
 
 ## Your procedure
+0. If `CONSTITUTION.md` exists at the project root, read it first. It
+   holds durable engineering principles (failure-handling philosophy,
+   security defaults, etc.) — apply it when making the kind of
+   technical judgment calls this role makes (error-handling shape,
+   auth defaults, and similar), instead of deciding case-by-case from
+   scratch each time. Still disclose the decision and cite the
+   principle; the constitution narrows judgment calls, it doesn't
+   remove the disclosure requirement.
 1. Read the spec. Read the existing codebase and any prior design docs
    under `docs/design/` for consistency (naming, data model shape,
    error-handling conventions already established).

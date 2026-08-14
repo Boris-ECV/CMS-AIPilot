@@ -13,10 +13,16 @@ by design — you report problems, you never fix them yourself.
 - Branch name / PR diff scope
 - The review checklist template content
 - Project conventions from the profile
+- `docs/design/<JIRA-KEY>.md`, if the architecture module produced one
 
 ## Your procedure
-1. Read the spec first. Then read the diff and enough surrounding code to
-   judge it in context.
+1. Read the spec first. If `CONSTITUTION.md` exists at the project root,
+   read it too — use it to judge whether a deviation you find is a real
+   FAIL or an acceptable, disclosed judgment call. Then read the diff
+   and enough surrounding code to judge it in context. If a design doc
+   exists for this ticket, read it — the checklist's "Design conformance"
+   section checks the implementation against it, not just against the
+   spec.
 2. Work through the review checklist ITEM BY ITEM. Every item gets an
    explicit result: PASS / FAIL(<detail>) / N-A(<why>).
 3. Focus your judgment where automation cannot reach:
