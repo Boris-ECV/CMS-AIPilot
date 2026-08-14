@@ -1,20 +1,20 @@
 # Session 報告 — 2026-08-14/15 orch-20260814-d7vq
 
-> 本 session 分四段執行（人類每次於 gate 核准後回覆「繼續」恢復同一 session），本報告涵蓋四段完整進度。
+> 本 session 分五段執行（人類每次於 gate 核准後回覆「繼續」恢復同一 session），本報告涵蓋五段完整進度。session 於第五段結束——board 上已無 Ready/Awaiting Gate 工單，等待人類決定下一步範圍。
 
 ## 本次進度
 | 工單 | 起始狀態 → 結束狀態 | 備註 |
 |------|----------------------|------|
 | SDLCAIP1-26 | Awaiting Gate（G1 已核准但未推進）→ **DONE** | 第一段：處理積壓的 G1 核准 → Designing → PRD 更新（PR #89）→ 設計文件（PR #88）→ G1b gate report。第二段：人類 G1b `GATE APPROVED` → Ready → 認領 → developer/tester/reviewer 全流程一次通過 → PR #93 → G2 gate report。第三段：人類 G2 `GATE APPROVED` → squash-merge PR #93（`d747269`）→ DONE，Agent Lock 釋放，SDLCAIP1-27 合併依賴解除 |
 | SDLCAIP1-27 | Designing（實際）／Awaiting Gate（metrics 誤記）→ **DONE** | 第一段：恢復程序修正 CLAUDE.md 3b 狀態不一致。第二段：G1b `GATE APPROVED` → Ready。第三段：SDLCAIP1-26 Done 後認領 → developer/tester/reviewer 全流程一次通過（181 測試、97% 覆蓋率）→ PR #99 → G2 gate report。第四段：人類 G2 `GATE APPROVED` → squash-merge PR #99（`d0b146d`）→ DONE，SDLCAIP1-28 合併依賴解除 |
-| SDLCAIP1-28 | Designing（實際）／Awaiting Gate（metrics 誤記）→ **Awaiting Gate（G2，待人類核准）** | 第二段核准後轉 Ready。第四段：SDLCAIP1-27 Done 後認領 → developer/tester/reviewer 全流程一次通過（含 10 個真實瀏覽器 Playwright e2e 測試，227 測試、97% 覆蓋率）→ PR #106 → G2 gate report → Awaiting Gate，等待人類 G2 核准。SDLCAIP1-16（前台靜態搜尋索引產生 + 搜尋 UI）拆分後的三張子工單（26/27/28）至此全數走完開發流程 |
+| SDLCAIP1-28 | Designing（實際）／Awaiting Gate（metrics 誤記）→ **DONE** | 第二段核准後轉 Ready。第四段：SDLCAIP1-27 Done 後認領 → developer/tester/reviewer 全流程一次通過（含 10 個真實瀏覽器 Playwright e2e 測試，227 測試、97% 覆蓋率）→ PR #106 → G2 gate report。第五段：人類 G2 `GATE APPROVED` → squash-merge PR #106（`4c739db`）→ DONE。**SDLCAIP1-16（前台靜態搜尋索引產生 + 搜尋 UI）拆分後的三張子工單（26/27/28）至此全數 DONE，搜尋功能整體交付完成** |
 | SDLCAIP1-23 | DONE（含殘留鎖）→ **DONE（鎖已清除）** | 第一段處理，不影響已完成的交付內容 |
 | SDLCAIP1-24 | DONE（含殘留鎖）→ **DONE（鎖已清除）** | 同上 |
 
 ## 等待你的動作 ⚠️
-- **待放行 gate**：
-  - SDLCAIP1-28 — **G2**（merge-to-main）— 審查報告見工單留言，PR https://github.com/Boris-ECV/CMS-AIPilot/pull/106（CI 綠燈，含 e2e 全套、reviewer APPROVE、覆蓋率 97%）。核准後 SDLCAIP1-16 拆分出的搜尋功能三票（26/27/28）將全數 DONE。
+- **待放行 gate**：無
 - **HUMAN-INPUT 待回答**：無
+- **需要人類確認的範圍問題**：board 上已無 Ready、Awaiting Gate、或需細化的 Backlog Story。剩餘非 DONE 工單皆為拆分後保留的追蹤用父單（SDLCAIP1-12/15/16/21，子工單皆已 DONE）或已消化的 HUMAN-INPUT 決策紀錄（SDLCAIP1-22/25），以及 Epic SDLCAIP1-3 本身。**Epic 描述涵蓋的已知範圍（後台文章 CRUD/認證/前端骨架/列表頁、前台靜態列表/詳細頁/搜尋）依目前看板記錄皆已交付。下個 session 開始前，需要人類確認：Epic SDLCAIP1-3 是否可視為完成，或是否有尚未寫入 Jira 的剩餘範圍需要 requirements-analyst 展開新 Story。** 在此確認前，orchestrator 沒有可認領的工作。
 
 ## 紅色區 🔴
 - Blocked > 3 天：無（SDLCAIP1-12、15、16、21 皆為拆分後保留的追蹤用父單，非異常阻塞）
@@ -22,7 +22,7 @@
 - Silent failure 檢查：0（所有非 Done/Backlog 工單本 session 皆有事件記錄）
 
 ## 資源使用
-- Token 用量估計：高（四段合計 12 個背景子代理委派：reporter、architect、developer×3、tester×3、reviewer×3〔含一次因未 checkout 分支而重跑〕）
+- Token 用量估計：高（五段合計 12 個背景子代理委派：reporter、architect、developer×3、tester×3、reviewer×3〔含一次因未 checkout 分支而重跑〕）
 - 高階模型使用：0 次 / 週上限 5（本 session 未觸發 escalation）
 - Rate limit 事件：無
 
@@ -34,4 +34,4 @@
 - **新發現（第四段）：SDLCAIP1-28 開發者實作與設計文件字面敘述有一項出入**（delete_article 的搜尋頁上傳失敗新增了獨立錯誤碼 `STATIC_SEARCH_PAGE_REGENERATION_FAILED`，設計文件字面寫「不新增獨立錯誤碼」），但開發者自己回報「完全依循設計文件，無偏離」——orchestrator 獨立比對 diff 才發現這項落差。判斷為與 delete 既有慣例一致的合理偏離，非缺陷，已在 PR/gate report 中明確揭露並請 reviewer 獨立評估（reviewer 同意）。提醒：即使子代理自稱「無偏離」，仍需獨立核對 diff 與設計文件逐項比對，不能只看回報文字。
 
 ## 下個 session 建議起點
-等待人類對 SDLCAIP1-28 的 G2 gate 決定（PR #106）。核准後 SDLCAIP1-16（前台靜態搜尋索引產生 + 搜尋 UI）拆分後的三張子工單（26/27/28）將全數 DONE，搜尋功能整體交付完成。目前無其他 Ready 工單、無需要細化的 Backlog Story——建議下個 session 檢視 Epic SDLCAIP1-3 是否還有未拆分的剩餘範圍（前台首頁列表 SDLCAIP1-21 系列、詳細頁 SDLCAIP1-20、後台列表 SDLCAIP1-19 等主要功能區塊皆已完成，搜尋功能完成後 Epic 範圍內已知功能可能已全數交付，需要人類確認是否有新範圍或 Epic 可視為完成）。
+**等待人類回答範圍問題**（見上方「等待你的動作」）：Epic SDLCAIP1-3 是否已完成，或有新範圍要交給 requirements-analyst 展開。若人類確認 Epic 已完成，下個 session 應以此結案、產出最終彙整報告；若有新範圍，下個 session 從該範圍的 Backlog 化開始正常流程。目前 board 上沒有任何工單可在無人類輸入的情況下繼續處理。
