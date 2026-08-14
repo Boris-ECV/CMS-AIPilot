@@ -135,16 +135,55 @@ class StaticPageGenerationError(Exception):
         super().__init__(f"Failed to generate static page for article_id={article_id}: {cause}")
 
 
+_ARTICLE_PAGE_STYLE = """
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      overflow-wrap: break-word;
+    }
+    .article { max-width: 100%; }
+    .article__title { font-size: 1.5rem; margin: 0 0 8px; }
+    .article__meta { display: block; color: #666; font-size: 0.875rem; margin-bottom: 16px; }
+    .article__content { white-space: pre-wrap; }
+    img, pre, table { max-width: 100%; }
+
+    /* 平板 768-1024px */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      body { padding: 24px; }
+      .article__title { font-size: 1.75rem; }
+    }
+
+    /* 桌機 >1024px */
+    @media (min-width: 1025px) {
+      body { padding: 32px; }
+      .article { max-width: 800px; margin: 0 auto; }
+      .article__title { font-size: 2rem; }
+    }
+    """
+
+
 def _generate_and_upload_static_page(article: Article) -> None:
     bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
     key = f"articles/{article.id}.html"
     title = html.escape(article.title)
     content = html.escape(article.content)
+    published_at_iso = article.published_at.isoformat()
+    published_at_display = article.published_at.strftime("%Y-%m-%d %H:%M")
     body = (
         "<!DOCTYPE html>"
-        "<html><head><meta charset=\"utf-8\">"
-        f"<title>{title}</title></head>"
-        f"<body><h1>{title}</h1><p>{content}</p></body></html>"
+        '<html lang="zh-Hant"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>{title}</title>"
+        f"<style>{_ARTICLE_PAGE_STYLE}</style>"
+        "</head>"
+        '<body><article class="article">'
+        f'<h1 class="article__title">{title}</h1>'
+        f'<time class="article__meta" datetime="{published_at_iso}">{published_at_display}</time>'
+        f'<div class="article__content">{content}</div>'
+        "</article></body></html>"
     )
     s3 = get_s3_client()
     try:
