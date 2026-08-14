@@ -220,6 +220,117 @@ def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
     return None
 
 
+LIST_PAGE_SIZE = 10  # 與 GET /articles 現有預設 page_size 一致
+
+
+def _list_page_key(page: int) -> str:
+    """page=1 -> 'index.html'；page>=2 -> 'page/{page}.html'。"""
+    if page == 1:
+        return "index.html"
+    return f"page/{page}.html"
+
+
+_LIST_PAGE_STYLE = """
+    .article-list { list-style: none; padding: 0; margin: 0; }
+    .article-list__item { padding: 12px 0; border-bottom: 1px solid #eee; }
+    .article-list__link { font-size: 1.125rem; text-decoration: none; }
+    .article-list__meta { display: block; color: #666; font-size: 0.875rem; margin-top: 4px; }
+    .pagination { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+    """
+
+
+def _render_list_page_html(page_items: list[dict], page: int, total_pages: int) -> str:
+    """page_items 為 DynamoDB 原始 item dict（含 id/title/published_at 字串）
+    的當頁切片，已由呼叫端排序、切好；本函式只負責組 HTML 字串。"""
+    items_html = ""
+    for item in page_items:
+        title = html.escape(item["title"])
+        published_at = datetime.fromisoformat(item["published_at"])
+        published_at_iso = published_at.isoformat()
+        published_at_display = published_at.strftime("%Y-%m-%d %H:%M")
+        items_html += (
+            '<li class="article-list__item">'
+            f'<a class="article-list__link" href="/articles/{item["id"]}.html">{title}</a>'
+            f'<time class="article-list__meta" datetime="{published_at_iso}">'
+            f"{published_at_display}</time>"
+            "</li>"
+        )
+
+    nav_html = ""
+    if page > 1:
+        prev_href = "/" + _list_page_key(page - 1)
+        nav_html += f'<a href="{prev_href}">上一頁</a>'
+    nav_html += f"<span>第 {page} / {total_pages} 頁</span>"
+    if page < total_pages:
+        next_href = "/" + _list_page_key(page + 1)
+        nav_html += f'<a href="{next_href}">下一頁</a>'
+
+    return (
+        "<!DOCTYPE html>"
+        '<html lang="zh-Hant"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>文章列表 - 第 {page} 頁</title>"
+        f"<style>{_ARTICLE_PAGE_STYLE}{_LIST_PAGE_STYLE}</style>"
+        "</head>"
+        "<body>"
+        f'<ul class="article-list">{items_html}</ul>'
+        f'<nav class="pagination">{nav_html}</nav>'
+        "</body></html>"
+    )
+
+
+def _generate_and_upload_list_pages(table) -> None:
+    """對 `table` 做 ConsistentRead=True 的 scan()，依 published_at 由新到舊
+    排序，依 LIST_PAGE_SIZE 切頁，對每一頁呼叫 _render_list_page_html 並
+    s3.put_object 上傳（key 用 _list_page_key）。任一頁上傳失敗即拋出
+    StaticPageGenerationError(f"list-page-{page}", exc)，中止後續頁面上傳。"""
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    s3 = get_s3_client()
+
+    response = table.scan(ConsistentRead=True)
+    items = response.get("Items", [])
+    items.sort(key=lambda item: item["published_at"], reverse=True)
+
+    total = len(items)
+    total_pages = math.ceil(total / LIST_PAGE_SIZE) if total else 0
+
+    for page in range(1, total_pages + 1):
+        start = (page - 1) * LIST_PAGE_SIZE
+        end = start + LIST_PAGE_SIZE
+        page_items = items[start:end]
+        body = _render_list_page_html(page_items, page, total_pages)
+        key = _list_page_key(page)
+        try:
+            s3.put_object(Bucket=bucket, Key=key, Body=body, ContentType="text/html")
+        except (BotoCoreError, ClientError) as exc:
+            raise StaticPageGenerationError(f"list-page-{page}", exc) from exc
+
+
+def _publish_article_and_lists_or_rollback(article: Article, table) -> JSONResponse | None:
+    """僅供 create_article 使用（不影響 update_article 既有的
+    _publish_or_rollback）。依序呼叫 _generate_and_upload_static_page(article)
+    與 _generate_and_upload_list_pages(table)，任一方拋出
+    StaticPageGenerationError 即中止，執行既有 rollback，回傳 502
+    JSONResponse；全部成功回傳 None。"""
+    try:
+        _generate_and_upload_static_page(article)
+        _generate_and_upload_list_pages(table)
+    except StaticPageGenerationError as upload_exc:
+        try:
+            table.delete_item(Key={"id": article.id})
+        except (BotoCoreError, ClientError) as delete_exc:
+            logger.error(
+                "Failed to roll back DynamoDB item for article_id=%s after static "
+                "page upload failure. Upload failure cause: %s. Rollback delete "
+                "failure cause: %s.",
+                article.id,
+                upload_exc.cause,
+                delete_exc,
+            )
+        return JSONResponse(status_code=502, content=STATIC_PAGE_GENERATION_FAILED_RESPONSE)
+    return None
+
+
 @articles_router.post("/articles", status_code=201, response_model=None)
 def create_article(article: ArticleCreate) -> Article | JSONResponse:
     created = Article(id=str(uuid.uuid4()), **article.model_dump())
@@ -232,7 +343,7 @@ def create_article(article: ArticleCreate) -> Article | JSONResponse:
             "published_at": created.published_at.isoformat(),
         }
     )
-    rollback_response = _publish_or_rollback(created, table)
+    rollback_response = _publish_article_and_lists_or_rollback(created, table)
     if rollback_response is not None:
         return rollback_response
     return created
