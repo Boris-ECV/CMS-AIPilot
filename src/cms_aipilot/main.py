@@ -205,11 +205,13 @@ def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
     deleting the item and return the 502 response the caller should
     return. Returns None on success.
 
-    Used by update_article (SDLCAIP1-24); create_article uses the
-    separate _publish_article_and_lists_or_rollback."""
+    Used by update_article (SDLCAIP1-24, extended in SDLCAIP1-27 to also
+    regenerate the search index); create_article uses the separate
+    _publish_article_and_lists_or_rollback."""
     try:
         _generate_and_upload_static_page(article)
         _generate_and_upload_list_pages(table)
+        _generate_and_upload_search_index(table)
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -492,6 +494,18 @@ def delete_article(article_id: str) -> Response:
                     "Article deleted but the homepage list pages could not be "
                     "regenerated."
                 ),
+                "article_id": article_id,
+            },
+        )
+
+    try:
+        _generate_and_upload_search_index(table)
+    except StaticPageGenerationError:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error_code": "STATIC_SEARCH_INDEX_REGENERATION_FAILED",
+                "detail": "Article deleted but the search index could not be regenerated.",
                 "article_id": article_id,
             },
         )
