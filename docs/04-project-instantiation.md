@@ -49,6 +49,12 @@ A4. 複製框架到專案 repo
 B1. 填寫 project-profile.yaml 全部必填欄位
 B2. 驗證每條指令可實際執行（在空專案骨架上跑通 build/test/lint）
 B3. 人類確認 profile → commit
+B4.（建議）在專案根目錄建立 CONSTITUTION.md，記錄跨故事都適用、
+    不該每次重新判斷的工程原則（失敗處理哲學、安全預設、測試哲學、
+    範圍紀律、程式碼風格等）。requirements-analyst / architect /
+    reviewer 三個 agent 會在存在時自動讀取並套用，用來收斂判斷
+    call，而非取代揭露義務。非必填——沒有這份文件時 agent 照常
+    運作，只是每次都要從零判斷。
 ```
 
 ### Phase C — 冒煙驗證（正式啟用前必做）

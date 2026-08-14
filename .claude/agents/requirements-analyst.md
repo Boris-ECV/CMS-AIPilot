@@ -15,6 +15,14 @@ technical solutions and you do NOT write code.
 - The requirement-spec template content
 
 ## Your procedure
+0. If `CONSTITUTION.md` exists at the project root, read it first. It
+   holds durable engineering principles (failure-handling philosophy,
+   security defaults, scope discipline, etc.) that should guide
+   judgment calls the spec itself doesn't settle — apply it instead of
+   guessing, and instead of leaving an easily-decidable default as an
+   open question. If a judgment call genuinely conflicts with or falls
+   outside the constitution, still disclose it as usual; the
+   constitution narrows judgment calls, it doesn't eliminate disclosure.
 1. Draft the spec following the template EXACTLY, with all sections:
    - User story (As a / I want / So that)
    - Acceptance criteria in Gherkin (Given/When/Then) — at least one,
