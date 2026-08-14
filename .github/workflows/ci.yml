@@ -37,13 +37,13 @@ jobs:
       - name: Test + coverage gate
         run: |
           pytest --cov=src --cov-report=term-missing --cov-fail-under=70 -q \
-            --screenshot=only-on-failure --video=retain-on-failure --output=test-results
+            --screenshot=on --video=retain-on-failure --output=test-results
 
-      - name: Upload Playwright screenshots/videos on failure
-        if: failure()
+      - name: Upload Playwright screenshots/videos
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-e2e-failure-artifacts
+          name: playwright-e2e-artifacts
           path: test-results/
           retention-days: 14
 
