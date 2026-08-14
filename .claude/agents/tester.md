@@ -37,9 +37,11 @@ and the code.
    this — G2 will reject on it. Locally, run with `--screenshot=only-
    on-failure --video=retain-on-failure --output=test-results` when
    debugging a failure — check `test-results/` for what the browser
-   actually saw instead of guessing from the text error alone. In CI
-   these upload automatically as the `playwright-e2e-failure-artifacts`
-   run artifact.
+   actually saw instead of guessing from the text error alone. CI runs
+   with `--screenshot=on` (every test, pass or fail) and uploads
+   `test-results/` as the `playwright-e2e-artifacts` run artifact
+   every run, as a permanent visual record of passing behavior too —
+   not just a failure debugging aid.
 6. Before reporting: run `git status` — working tree must be clean and
    all new test files committed AND pushed. A PASS verdict on tests that
    only exist locally is not a real PASS; the orchestrator verifies your

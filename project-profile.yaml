@@ -48,11 +48,11 @@ conventions:
     pytest.mark.skip 佔位——僅限骨架建立前。骨架建立後，每張涉及 UI 的
     Story，tester 必須在 Testing 階段宣告是否需要 e2e 並補上真正執行的
     測試，不可繼續沿用 skip 佔位（見 docs/02 §3.3、gates.yaml G2
-    e2e_declared_and_honored）。CI 對 e2e 失敗會自動存截圖/錄影
-    （pytest-playwright `--screenshot=only-on-failure --video=retain-on-failure`），
-    失敗時到該次 GitHub Actions run 的 Artifacts 下載
-    `playwright-e2e-failure-artifacts` 查看，不用只靠文字錯誤訊息猜畫面
-    長什麼樣。
+    e2e_declared_and_honored）。CI 對每個 e2e 測試都會存截圖（不分成功/
+    失敗，pytest-playwright `--screenshot=on`），失敗的另外存錄影
+    （`--video=retain-on-failure`）。無論成功失敗，每次 GitHub Actions
+    run 的 Artifacts 都會有 `playwright-e2e-artifacts` 可下載查看，作為
+    測試成功當下畫面的永久記錄，不用只靠文字結果推測畫面長什麼樣。
 
 structure:
   src: "src/cms_aipilot/"
