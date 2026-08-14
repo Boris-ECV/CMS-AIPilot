@@ -280,3 +280,4 @@
 {"ts": "2026-08-14T16:19:39Z", "event": "stage_transition", "ticket": "SDLCAIP1-26", "agent": "orch-20260814-d7vq", "data": {"from": "Awaiting Gate", "to": "Done"}}
 {"ts": "2026-08-14T16:19:39Z", "event": "unblock", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"reason": "blocking dependency SDLCAIP1-26 merged to main"}}
 {"ts": "2026-08-14T16:26:37Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-14T16:31:07Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "In Progress", "to": "Testing"}}
