@@ -282,3 +282,5 @@
 {"ts": "2026-08-14T16:26:37Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-14T16:31:07Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "In Progress", "to": "Testing"}}
 {"ts": "2026-08-14T16:35:54Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "Testing", "to": "In Review"}}
+{"ts": "2026-08-14T16:42:22Z", "event": "gate_review", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"gate": "G2", "mode": "manual", "result": "pending", "criteria_results": {"pr_exists": "PASS", "ci_green": "PASS", "reviewer_approve": "PASS", "checklist_complete": "PASS", "coverage_met": "PASS", "e2e_declared_and_honored": "PASS"}}}
+{"ts": "2026-08-14T16:42:22Z", "event": "stage_transition", "ticket": "SDLCAIP1-27", "agent": "orch-20260814-d7vq", "data": {"from": "In Review", "to": "Awaiting Gate"}}
