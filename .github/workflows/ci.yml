@@ -35,7 +35,17 @@ jobs:
         run: ruff check .
 
       - name: Test + coverage gate
-        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=70 -q
+        run: |
+          pytest --cov=src --cov-report=term-missing --cov-fail-under=70 -q \
+            --screenshot=only-on-failure --video=retain-on-failure --output=test-results
+
+      - name: Upload Playwright screenshots/videos on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-failure-artifacts
+          path: test-results/
+          retention-days: 14
 
   frontend-quality:
     runs-on: ubuntu-latest
