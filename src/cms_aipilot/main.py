@@ -184,6 +184,7 @@ def _generate_and_upload_static_page(article: Article) -> None:
         f'<h1 class="article__title">{title}</h1>'
         f'<time class="article__meta" datetime="{published_at_iso}">{published_at_display}</time>'
         f'<div class="article__content">{content}</div>'
+        '<a href="/search.html">搜尋文章</a>'
         "</article></body></html>"
     )
     s3 = get_s3_client()
@@ -206,12 +207,14 @@ def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
     return. Returns None on success.
 
     Used by update_article (SDLCAIP1-24, extended in SDLCAIP1-27 to also
-    regenerate the search index); create_article uses the separate
+    regenerate the search index, and in SDLCAIP1-28 to also refresh the
+    search page); create_article uses the separate
     _publish_article_and_lists_or_rollback."""
     try:
         _generate_and_upload_static_page(article)
         _generate_and_upload_list_pages(table)
         _generate_and_upload_search_index(table)
+        _generate_and_upload_search_page()
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -281,6 +284,7 @@ def _render_list_page_html(page_items: list[dict], page: int, total_pages: int) 
         f"<style>{_ARTICLE_PAGE_STYLE}{_LIST_PAGE_STYLE}</style>"
         "</head>"
         "<body>"
+        '<a href="/search.html">搜尋文章</a>'
         f'<ul class="article-list">{items_html}</ul>'
         f'<nav class="pagination">{nav_html}</nav>'
         "</body></html>"
@@ -360,17 +364,111 @@ def _generate_and_upload_search_index(table) -> None:
         raise StaticPageGenerationError("search-index", exc) from exc
 
 
+SEARCH_PAGE_KEY = "search.html"
+
+_SEARCH_PAGE_STYLE = """
+    .search-form__input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+    """
+
+_SEARCH_PAGE_SCRIPT = """
+(function () {
+  var input = document.getElementById("search-input");
+  var resultsEl = document.getElementById("search-results");
+  var emptyEl = document.getElementById("search-empty");
+  var indexData = null;
+
+  fetch("/search/index.json")
+    .then(function (res) { return res.json(); })
+    .then(function (data) { indexData = data; })
+    .catch(function () { indexData = []; });
+
+  input.addEventListener("input", function () {
+    var keyword = input.value.trim();
+    resultsEl.innerHTML = "";
+    emptyEl.hidden = true;
+
+    if (keyword === "") {
+      return; // AC7：空搜尋框不顯示任何結果或錯誤
+    }
+
+    var lowerKeyword = keyword.toLowerCase();
+    var matches = (indexData || []).filter(function (item) {
+      return item.title.toLowerCase().indexOf(lowerKeyword) !== -1 ||
+             item.content.toLowerCase().indexOf(lowerKeyword) !== -1;
+    });
+
+    if (matches.length === 0) {
+      emptyEl.hidden = false; // AC5
+      return;
+    }
+
+    matches.forEach(function (item) {
+      var li = document.createElement("li");
+      li.className = "article-list__item";
+      var a = document.createElement("a");
+      a.className = "article-list__link";
+      a.href = "/articles/" + item.id + ".html";
+      a.textContent = item.title;
+      li.appendChild(a);
+      resultsEl.appendChild(li);
+    });
+  });
+})();
+"""
+
+
+def _generate_and_upload_search_page() -> None:
+    """產生並上傳固定不變的搜尋頁骨架（search.html，S3 bucket 根目錄）。內容
+    不依賴任何文章資料——比對邏輯在瀏覽器端讀取 search/index.json 執行
+    （SDLCAIP1-26/27），本函式只負責上傳靜態骨架頁本身。上傳失敗即拋出
+    StaticPageGenerationError("search-page", exc)（沿用既有例外類別，不新增
+    錯誤碼），比照其他靜態頁上傳失敗的既有 rollback/502 處理路徑。"""
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    body = (
+        "<!DOCTYPE html>"
+        '<html lang="zh-Hant"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        "<title>搜尋文章</title>"
+        f"<style>{_ARTICLE_PAGE_STYLE}{_SEARCH_PAGE_STYLE}</style>"
+        "</head>"
+        "<body>"
+        '<form class="search-form" id="search-form" onsubmit="return false;">'
+        '<input type="text" id="search-input" class="search-form__input" '
+        'placeholder="輸入關鍵字搜尋文章" autocomplete="off">'
+        "</form>"
+        '<ul class="article-list" id="search-results"></ul>'
+        '<p class="search-empty" id="search-empty" hidden>查無符合的文章</p>'
+        f"<script>{_SEARCH_PAGE_SCRIPT}</script>"
+        "</body></html>"
+    )
+    s3 = get_s3_client()
+    try:
+        s3.put_object(
+            Bucket=bucket, Key=SEARCH_PAGE_KEY, Body=body, ContentType="text/html"
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise StaticPageGenerationError("search-page", exc) from exc
+
+
 def _publish_article_and_lists_or_rollback(article: Article, table) -> JSONResponse | None:
     """僅供 create_article 使用（不影響 update_article 既有的
     _publish_or_rollback）。依序呼叫 _generate_and_upload_static_page(article)、
-    _generate_and_upload_list_pages(table) 與
-    _generate_and_upload_search_index(table)，任一方拋出
+    _generate_and_upload_list_pages(table)、
+    _generate_and_upload_search_index(table) 與
+    _generate_and_upload_search_page()，任一方拋出
     StaticPageGenerationError 即中止，執行既有 rollback，回傳 502
     JSONResponse；全部成功回傳 None。"""
     try:
         _generate_and_upload_static_page(article)
         _generate_and_upload_list_pages(table)
         _generate_and_upload_search_index(table)
+        _generate_and_upload_search_page()
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -506,6 +604,18 @@ def delete_article(article_id: str) -> Response:
             content={
                 "error_code": "STATIC_SEARCH_INDEX_REGENERATION_FAILED",
                 "detail": "Article deleted but the search index could not be regenerated.",
+                "article_id": article_id,
+            },
+        )
+
+    try:
+        _generate_and_upload_search_page()
+    except StaticPageGenerationError:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error_code": "STATIC_SEARCH_PAGE_REGENERATION_FAILED",
+                "detail": "Article deleted but the search page could not be regenerated.",
                 "article_id": article_id,
             },
         )

@@ -281,12 +281,14 @@ class TestCreateArticleTriggersListPageGeneration:
         assert response.status_code == 201
 
         keys = {c.kwargs["Key"] for c in mock_s3.put_object.call_args_list}
-        # article detail page + index.html + page/2.html + search index (SDLCAIP1-26)
+        # article detail page + index.html + page/2.html + search index
+        # (SDLCAIP1-26) + search page (SDLCAIP1-28)
         assert keys == {
             f"articles/{response.json()['id']}.html",
             "index.html",
             "page/2.html",
             "search/index.json",
+            "search.html",
         }
 
 
