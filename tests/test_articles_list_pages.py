@@ -219,9 +219,14 @@ class TestCreateArticleTriggersListPageGeneration:
         assert VALID_PAYLOAD["title"] in index_call.kwargs["Body"]
 
     def test_scan_uses_consistent_read(self, mock_table, mock_s3):
+        """SDLCAIP1-26: create_article now also scans for the search index,
+        so scan() is called once per S3-driven consumer (list pages, search
+        index) — every call must still use ConsistentRead=True."""
         mock_table.scan.return_value = {"Items": []}
         client.post("/articles", json=VALID_PAYLOAD)
-        mock_table.scan.assert_called_once_with(ConsistentRead=True)
+        assert mock_table.scan.call_count >= 1
+        for call in mock_table.scan.call_args_list:
+            assert call == ((), {"ConsistentRead": True})
 
     def test_new_article_sorted_first_among_existing(self, mock_table, mock_s3):
         created_id_holder = {}
@@ -276,8 +281,13 @@ class TestCreateArticleTriggersListPageGeneration:
         assert response.status_code == 201
 
         keys = {c.kwargs["Key"] for c in mock_s3.put_object.call_args_list}
-        # article detail page + index.html + page/2.html
-        assert keys == {f"articles/{response.json()['id']}.html", "index.html", "page/2.html"}
+        # article detail page + index.html + page/2.html + search index (SDLCAIP1-26)
+        assert keys == {
+            f"articles/{response.json()['id']}.html",
+            "index.html",
+            "page/2.html",
+            "search/index.json",
+        }
 
 
 class TestCreateArticleListPageUploadFails:
