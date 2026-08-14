@@ -1,4 +1,5 @@
 import html
+import json
 import logging
 import math
 import os
@@ -315,15 +316,59 @@ def _generate_and_upload_list_pages(table) -> None:
             raise StaticPageGenerationError(f"list-page-{page}", exc) from exc
 
 
+SEARCH_INDEX_KEY = "search/index.json"
+
+
+def _build_search_index_entry(item: dict) -> dict:
+    """將 DynamoDB 原始 item dict（含 id/title/content/published_at 字串）轉為
+    索引項目 {"id", "title", "content", "published_at"}（HUMAN-INPUT SDLCAIP1-25
+    核准欄位：content 為全文，不截斷/摘要）。published_at 維持 ISO 字串
+    （item 原始儲存格式，不重新格式化），供前端 SDLCAIP1-28 的 vanilla JS 直接
+    使用，不需額外的日期解析。"""
+    return {
+        "id": item["id"],
+        "title": item["title"],
+        "content": item["content"],
+        "published_at": item["published_at"],
+    }
+
+
+def _generate_and_upload_search_index(table) -> None:
+    """對 `table` 做 ConsistentRead=True 的 scan()，對每筆 item 呼叫
+    _build_search_index_entry，組成 JSON 陣列（json.dumps(..., ensure_ascii=False)
+    以正確輸出中文全文，不轉義成 \\uXXXX），以 s3.put_object 上傳至
+    SEARCH_INDEX_KEY（ContentType="application/json"）。scan() 回傳空清單時仍
+    上傳空陣列 `[]`（不略過上傳——比照 _generate_and_upload_list_pages 對
+    total == 0 的既有處理）。上傳失敗即拋出
+    StaticPageGenerationError("search-index", exc)（沿用既有例外類別，
+    'search-index' 作為 log 訊息的識別字串，不新增例外類別）。"""
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    s3 = get_s3_client()
+
+    response = table.scan(ConsistentRead=True)
+    items = response.get("Items", [])
+    entries = [_build_search_index_entry(item) for item in items]
+    body = json.dumps(entries, ensure_ascii=False)
+
+    try:
+        s3.put_object(
+            Bucket=bucket, Key=SEARCH_INDEX_KEY, Body=body, ContentType="application/json"
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise StaticPageGenerationError("search-index", exc) from exc
+
+
 def _publish_article_and_lists_or_rollback(article: Article, table) -> JSONResponse | None:
     """僅供 create_article 使用（不影響 update_article 既有的
-    _publish_or_rollback）。依序呼叫 _generate_and_upload_static_page(article)
-    與 _generate_and_upload_list_pages(table)，任一方拋出
+    _publish_or_rollback）。依序呼叫 _generate_and_upload_static_page(article)、
+    _generate_and_upload_list_pages(table) 與
+    _generate_and_upload_search_index(table)，任一方拋出
     StaticPageGenerationError 即中止，執行既有 rollback，回傳 502
     JSONResponse；全部成功回傳 None。"""
     try:
         _generate_and_upload_static_page(article)
         _generate_and_upload_list_pages(table)
+        _generate_and_upload_search_index(table)
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
