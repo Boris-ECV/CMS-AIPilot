@@ -156,14 +156,23 @@ class TestGenerateAndUploadListPages:
         assert "article-0" in page2_call.kwargs["Body"]
         assert "第 2 / 2 頁" in page2_call.kwargs["Body"]
 
-    def test_no_articles_uploads_nothing(self, mock_s3, monkeypatch):
+    def test_no_articles_uploads_empty_state_index_html(self, mock_s3, monkeypatch):
+        """SDLCAIP1-24 AC3: when the table has no articles left (e.g. after
+        deleting the last one), total_pages is floored at 1 so page 1
+        (index.html) is still regenerated as an empty-state page, instead of
+        leaving S3's index.html stuck with stale pre-deletion content."""
         monkeypatch.setenv("ARTICLES_STATIC_BUCKET_NAME", "test-bucket")
         fake_table = MagicMock()
         fake_table.scan.return_value = {"Items": []}
 
         _generate_and_upload_list_pages(fake_table)
 
-        mock_s3.put_object.assert_not_called()
+        mock_s3.put_object.assert_called_once()
+        call_kwargs = mock_s3.put_object.call_args.kwargs
+        assert call_kwargs["Bucket"] == "test-bucket"
+        assert call_kwargs["Key"] == "index.html"
+        assert '<ul class="article-list"></ul>' in call_kwargs["Body"]
+        assert "第 1 / 1 頁" in call_kwargs["Body"]
 
     def test_page_size_is_ten(self):
         assert LIST_PAGE_SIZE == 10
