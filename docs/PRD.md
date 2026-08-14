@@ -237,6 +237,48 @@ Scenario: 文章內容含特殊字元時正確逸出
 
 **依賴:** blocked by SDLCAIP1-23（需其提供的共用分頁產生函式，需 SDLCAIP1-23 先 Done 並合併，本票才能開始開發；G1/G1b 審查可與 SDLCAIP1-23 並行）、SDLCAIP1-9（既有 update/delete 觸發慣例）、SDLCAIP1-20（共用版型）。架構決策依據：HUMAN-INPUT SDLCAIP1-22，人類已核准選項 A。
 
+## SDLCAIP1-26 — 搜尋索引產生（新增文章觸發）
+
+**使用者故事:** As a 網站前台訪客, I want 新發布的文章立即被收錄進搜尋索引（含標題與全文）, so that 我可以在文章發布後馬上透過關鍵字搜尋到它.
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 新增文章成功後索引即時包含該文章
+  Given 系統目前已有 0 篇以上文章
+  When 呼叫 create article（POST /articles）成功建立一篇新文章
+  Then S3 上 search/index.json 被重新產生並覆蓋上傳，內容為一個 JSON 陣列，
+    且包含一筆該新文章的項目，至少含 id、title、content 三個欄位，值與剛
+    建立的文章相符
+
+Scenario: 索引反映目前資料庫中的全部文章，不只新增的那一篇
+  Given 資料庫中已存在至少一篇既有文章
+  When 呼叫 create article 成功新增另一篇文章
+  Then 重新產生的 search/index.json 陣列筆數等於資料庫目前全部文章數
+    （既有 + 新增），既有文章的項目也存在於陣列中
+
+Scenario: 索引產生/上傳失敗時，新增動作視為失敗並回滚
+  Given create article 的 DynamoDB 寫入已成功
+  When search/index.json 產生或上傳至 S3 失敗
+  Then 呼叫端收到既有 502 錯誤回應（比照 SDLCAIP1-8/23 既有
+    STATIC_PAGE_GENERATION_FAILED 慣例），且本次新增的 DynamoDB 項目被
+    回滚刪除
+
+Scenario: 第一篇文章建立時，索引檔案首次產生
+  Given 系統目前沒有任何文章、S3 上尚無 search/index.json
+  When 建立第一篇文章成功
+  Then S3 上首次出現 search/index.json，內容為僅含該篇文章的 JSON 陣列
+```
+
+**範圍外:**
+- 文章更新/刪除觸發的索引重新產生（SDLCAIP1-27）
+- 前台搜尋頁面 UI、關鍵字比對邏輯、結果呈現（SDLCAIP1-28）
+- 索引檔案除 id/title/content/published_at 以外的欄位（分類、標籤——Epic 未定義）
+- 索引檔案的分頁/檔案分割（單一 JSON 檔案，不論文章數量多寡）
+- 後台管理 UI 的搜尋/篩選功能（不同產出物）
+
+**依賴:** 工單依賴：無附塞前置；參考 SDLCAIP1-8/9（既有 create 觸發與 S3 上傳/回滚慣例）、SDLCAIP1-23（「新增時同步重建全量靜態輸出」模式先例）; 外部依賴：AWS S3（既有 ARTICLES_STATIC_BUCKET_NAME）、DynamoDB（既有 articles table）。架構決策依據：HUMAN-INPUT SDLCAIP1-25。本工單為 SDLCAIP1-16（前台靜態搜尋索引產生 + 搜尋 UI）依 docs/02 §6 拆分規則拆分後的子工單之一。
+
 ## SDLCAIP1-27 — 搜尋索引重新產生（更新／刪除文章觸發）
 
 **使用者故事:** As a 網站前台訪客, I want 文章被更新或刪除後搜尋索引同步反映該異動, so that 我搜尋到的結果不會是已刪除或已過期的內容。
