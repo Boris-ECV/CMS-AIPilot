@@ -237,6 +237,50 @@ Scenario: 文章內容含特殊字元時正確逸出
 
 **依賴:** blocked by SDLCAIP1-23（需其提供的共用分頁產生函式，需 SDLCAIP1-23 先 Done 並合併，本票才能開始開發；G1/G1b 審查可與 SDLCAIP1-23 並行）、SDLCAIP1-9（既有 update/delete 觸發慣例）、SDLCAIP1-20（共用版型）。架構決策依據：HUMAN-INPUT SDLCAIP1-22，人類已核准選項 A。
 
+## SDLCAIP1-27 — 搜尋索引重新產生（更新／刪除文章觸發）
+
+**使用者故事:** As a 網站前台訪客, I want 文章被更新或刪除後搜尋索引同步反映該異動, so that 我搜尋到的結果不會是已刪除或已過期的內容。
+
+**驗收條件 (Gherkin):**
+1. 更新文章後索引反映最新標題/內容
+2. 刪除文章後索引不再包含該文章
+3. 刪除最後一篇文章後索引成為空陣列 []
+4. 更新觸發的索引上傳失敗 → 502 STATIC_PAGE_GENERATION_FAILED + DynamoDB 回滾
+5. 刪除觸發的索引上傳失敗 → 502（同類命名風格如 STATIC_LIST_PAGE_REGENERATION_FAILED），無回滾
+
+**不在此範圍:**
+- 新增文章觸發的索引首次產生（SDLCAIP1-26）
+- 前台搜尋頁面 UI（SDLCAIP1-28）
+- update「回滾其實是整筆刪除」既有語意落差的修正（沿用 SDLCAIP1-24 已定案）
+- 舊索引項目的版本歷史/還原機制
+
+**依賴:** is blocked by SDLCAIP1-26；參考 SDLCAIP1-24（update/delete 觸發同步重建模式先例）；架構決策依據：HUMAN-INPUT SDLCAIP1-25（人類已核准：索引含全文 content、S3 路徑 search/index.json）。
+
+## SDLCAIP1-28 — 前台搜尋頁面（search.html）
+
+**使用者故事:** As a 網站前台訪客, I want 在一個獨立的搜尋頁面輸入關鍵字並看到符合標題或全文的文章清單, so that 我可以快速找到我感興趣的文章內容。
+
+**驗收條件 (Gherkin):**
+1. 獨立搜尋頁存在且可從其他靜態頁面連結進入
+2. 輸入關鍵字後顯示標題相符的文章
+3. 輸入關鍵字後顯示內文相符的文章（全文搜尋）
+4. 關鍵字比對不分大小寫、為子字串比對
+5. 查無符合結果時顯示明確提示
+6. 結果不分頁，全部顯示
+7. 搜尋框為空時不顯示任何結果或錯誤
+8. 比對邏輯純前端執行，不呼叫後端 API（唯一資料來源是 search/index.json）
+
+**不在此範圍:**
+- 搜尋結果分頁/無限捲動
+- 任何第三方 JS 函式庫或建置管線（純 vanilla JS）
+- 搜尋結果排序邏輯
+- 內文摘要/highlight
+- 分類/標籤篩選與進階搜尋語法
+- 後台管理 UI 搜尋
+- 響應式版面細節設計（沿用既有共用樣式）
+
+**依賴:** is blocked by SDLCAIP1-26、SDLCAIP1-27；也需修改既有列表頁/詳細頁加入連結；架構決策依據：HUMAN-INPUT SDLCAIP1-25（人類已核准：獨立搜尋頁、vanilla JS 比對、不分頁全部顯示）。
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
