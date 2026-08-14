@@ -13,3 +13,4 @@ build/
 .env
 .env.*
 cdk.out/
+test-results/
