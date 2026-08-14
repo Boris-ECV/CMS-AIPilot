@@ -56,3 +56,9 @@ export async function updateArticle(
     body: JSON.stringify(input),
   });
 }
+
+export async function deleteArticle(id: string): Promise<void> {
+  await apiClient.request<void>(`/articles/${id}`, {
+    method: "DELETE",
+  });
+}
