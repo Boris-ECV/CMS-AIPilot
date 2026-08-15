@@ -2,6 +2,12 @@
 
 > 每個 agent 的正式定義（system prompt + 工具權限 + 模型）在 `.claude/agents/*.md`。
 > 本文件說明設計意圖與職責邊界，是理解「為什麼這樣切」的地方。
+>
+> **本文件只登記核心 agent（框架骨架，不可拆卸）。模組帶入的 agent（如
+> architecture 模組的 `architect`）啟用後一樣落地在 `.claude/agents/`、
+> 一樣與核心 agent 同層級運作，但正式登記處是該模組自己的
+> `module.yaml` + `README.md`，見 `docs/05-module-registry.md` §5 的模組
+> 狀態表。**
 
 ## 設計原則
 
