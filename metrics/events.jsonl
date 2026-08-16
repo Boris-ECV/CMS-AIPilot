@@ -306,3 +306,4 @@
 {"ts": "2026-08-16T15:30:37Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "Awaiting Gate", "to": "Ready"}}
 {"ts": "2026-08-16T15:30:44Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-16T15:56:06Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "In Progress", "to": "Testing"}}
+{"ts": "2026-08-17T00:06:26Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "Testing", "to": "In Review"}}
