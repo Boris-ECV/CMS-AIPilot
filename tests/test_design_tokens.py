@@ -12,6 +12,7 @@ file itself (docs/design/SDLCAIP1-30.md 介面/API 契約).
 
 from __future__ import annotations
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -83,6 +84,84 @@ class TestGenerateAndUploadDesignTokens:
         assert "--color-text-primary: #111111;" in body
         assert "--space-4: 16px;" in body
         assert "--breakpoint-tablet-min: 768px;" in body
+
+    def test_body_contains_every_token_from_design_system_md_with_exact_values(self, mock_s3):
+        """AC1 (Gherkin): 'design-tokens.css 內容包含 docs/design-system.md 第
+        1-5 節定義的全部 CSS 自訂屬性，數值完全一致' — the spot-check test
+        above only samples 4 of the ~24 tokens. This test asserts the
+        *complete* set defined in docs/design-system.md §1-5 (色彩/字體/間距/
+        斷點), values copied verbatim from that document, so a regression
+        that silently drops or mis-values any single token is caught."""
+        _generate_and_upload_design_tokens()
+        body = mock_s3.put_object.call_args.kwargs["Body"]
+
+        expected_declarations = [
+            # §1 色彩系統
+            "--color-bg: #FFFFFF;",
+            "--color-text-primary: #111111;",
+            "--color-text-secondary: #111111;",
+            "--color-border: #E5E5E5;",
+            # §2 字體
+            '--font-family-base: -apple-system, BlinkMacSystemFont, "PingFang TC",',
+            '"Noto Sans TC", sans-serif;',
+            # §3 字級與字重階層
+            "--font-size-display: 2.5rem;",
+            "--line-height-display: 1.3;",
+            "--font-weight-display: 400;",
+            "--font-size-h1: 2rem;",
+            "--line-height-h1: 1.35;",
+            "--font-weight-h1: 600;",
+            "--font-size-h2: 1.5rem;",
+            "--line-height-h2: 1.4;",
+            "--font-weight-h2: 600;",
+            "--font-size-body: 1rem;",
+            "--line-height-body: 1.7;",
+            "--font-weight-body: 400;",
+            "--font-size-meta: 0.875rem;",
+            "--line-height-meta: 1.5;",
+            "--font-weight-meta: 400;",
+            "--font-size-nav: 0.9375rem;",
+            "--line-height-nav: 1.5;",
+            "--font-weight-nav: 400;",
+            # §4 間距 Scale
+            "--space-1: 4px;",
+            "--space-2: 8px;",
+            "--space-3: 12px;",
+            "--space-4: 16px;",
+            "--space-5: 24px;",
+            "--space-6: 32px;",
+            "--space-7: 48px;",
+            "--space-8: 64px;",
+            # §5 RWD 斷點
+            "--breakpoint-tablet-min: 768px;",
+            "--breakpoint-tablet-max: 1024px;",
+            "--breakpoint-desktop-min: 1025px;",
+        ]
+        for declaration in expected_declarations:
+            assert declaration in body, f"missing or mismatched token declaration: {declaration!r}"
+
+        # §1 also documents that --color-accent is deliberately undefined
+        # (design-system.md: "本風格核心特徵：不設強調色") — assert there is
+        # no actual custom-property *declaration* for it (a mention in an
+        # explanatory comment, as the file has, is fine and expected).
+        assert "--color-accent:" not in body
+
+    def test_frontend_copy_is_byte_identical_to_backend_static_copy(self, mock_s3):
+        """Both `src/cms_aipilot/static/design-tokens.css` (uploaded to S3,
+        asserted above) and `frontend/src/styles/design-tokens.css`
+        (imported by LoginPage.tsx, AC3) are meant to be the same token
+        values per docs/design/SDLCAIP1-30.md 關鍵技術決策. This guards
+        against the two hand-maintained copies drifting apart."""
+        _generate_and_upload_design_tokens()
+        backend_body = mock_s3.put_object.call_args.kwargs["Body"]
+
+        frontend_path = os.path.join(
+            os.path.dirname(__file__), "..", "frontend", "src", "styles", "design-tokens.css"
+        )
+        with open(frontend_path, encoding="utf-8") as f:
+            frontend_body = f.read()
+
+        assert backend_body == frontend_body
 
     def test_upload_failure_raises_static_page_generation_error(self, mock_s3):
         mock_s3.put_object.side_effect = ClientError(
