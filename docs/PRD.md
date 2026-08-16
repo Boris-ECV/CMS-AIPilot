@@ -323,6 +323,37 @@ Scenario: 第一篇文章建立時，索引檔案首次產生
 
 **依賴:** is blocked by SDLCAIP1-26、SDLCAIP1-27；也需修改既有列表頁/詳細頁加入連結；架構決策依據：HUMAN-INPUT SDLCAIP1-25（人類已核准：獨立搜尋頁、vanilla JS 比對、不分頁全部顯示）。
 
+## SDLCAIP1-30 — 建立共用視覺樣式 Token 機制（design-tokens.css）
+
+**使用者故事:** As a 維護 CMS AI Pilot 的開發者, I want 前台靜態頁與後台管理介面共用同一份視覺樣式 token（色彩、字級、間距、斷點）, so that 之後每一張 UI 優化 Story 不用各自重新定義樣式數值，視覺風格能保持全站一致。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: design-tokens.css 內容符合設計規範
+  Given docs/design-system.md 第 1-5 節定義的色彩/字體/間距/斷點 token
+  When 讀取新建立的 design-tokens.css
+  Then 檔案內容包含該文件定義的全部 CSS 自訂屬性，數值完全一致
+
+Scenario: 前台靜態頁發布流程包含此檔案
+  Given 後台觸發文章新增/編輯/刪除的靜態頁重新產生流程（沿用現有 search.html 等全域靜態資源的作法：於同一個發布/rollback 流程中一併上傳，見 src/cms_aipilot/main.py 的 _generate_and_upload_* 系列函式）
+  When 靜態頁上傳至 S3
+  Then design-tokens.css 也同步上傳至 S3 對應路徑，且路徑在本 Story 的設計文件中明確定義
+
+Scenario: 後台管理介面實際引用此檔案
+  Given frontend/（Vite+React 後台）建置流程
+  When 執行 npm run build
+  Then design-tokens.css 被至少一個既有元件 import 並生效（用瀏覽器開發工具可驗證變數值已套用），不是只有檔案存在但沒被引用
+```
+
+**範圍外:**
+- 將既有前台靜態頁（文章列表、文章詳細頁、首頁列表、搜尋頁）的既有 inline `<style>` 改為引用此檔案——留給各自後續的 UI 優化 Story（依 `docs/design-system.md` §10 套用範圍策略）
+- 後台（`frontend/`）元件層級的樣式規則系統化實作（按鈕/表單/卡片樣式等，見 `docs/design-system.md` §7）——本票允許為單一既有元件（建議：LoginPage）新增最小限度的元件 CSS 檔案以套用少數 token 變數作為驗證，但不含完整樣式規則實作
+
+**依賴:**
+- 工單依賴：無
+- 外部依賴：無
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
