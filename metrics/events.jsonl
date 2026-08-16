@@ -305,3 +305,4 @@
 {"ts": "2026-08-16T15:30:37Z", "event": "gate_review", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"gate": "G1b", "mode": "manual", "result": "approved", "criteria_results": {"design_doc_exists": "PASS", "interface_declared": "PASS", "data_model_declared": "PASS", "no_open_design_questions": "PASS"}}}
 {"ts": "2026-08-16T15:30:37Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "Awaiting Gate", "to": "Ready"}}
 {"ts": "2026-08-16T15:30:44Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-16T15:56:06Z", "event": "stage_transition", "ticket": "SDLCAIP1-30", "agent": "orch-20260816-t3rk", "data": {"from": "In Progress", "to": "Testing"}}
