@@ -5,6 +5,8 @@ import { login } from "../api/auth";
 import { ApiError } from "../api/client";
 import { setStoredToken } from "../auth/token";
 import { ARTICLES_PATH } from "../routes";
+import "../styles/design-tokens.css";
+import "./LoginPage.css";
 
 const INVALID_CREDENTIALS_MESSAGE = "帳號或密碼錯誤";
 const ACCOUNT_LOCKED_MESSAGE = "帳戶已被鎖定,請稍後再試";
@@ -43,8 +45,8 @@ export function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>登入</h1>
+    <form className="login-page__form" onSubmit={handleSubmit}>
+      <h1 className="login-page__title">登入</h1>
       <div>
         <label htmlFor="username">帳號</label>
         <input
@@ -68,7 +70,7 @@ export function LoginPage() {
         />
       </div>
       {error && <p role="alert">{error}</p>}
-      <button type="submit" disabled={submitting}>
+      <button className="login-page__submit" type="submit" disabled={submitting}>
         登入
       </button>
     </form>

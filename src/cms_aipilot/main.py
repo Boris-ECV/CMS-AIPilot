@@ -215,6 +215,7 @@ def _publish_or_rollback(article: Article, table) -> JSONResponse | None:
         _generate_and_upload_list_pages(table)
         _generate_and_upload_search_index(table)
         _generate_and_upload_search_page()
+        _generate_and_upload_design_tokens()
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -456,12 +457,41 @@ def _generate_and_upload_search_page() -> None:
         raise StaticPageGenerationError("search-page", exc) from exc
 
 
+DESIGN_TOKENS_KEY = "design-tokens.css"
+
+_DESIGN_TOKENS_PATH = os.path.join(os.path.dirname(__file__), "static", "design-tokens.css")
+
+
+def _generate_and_upload_design_tokens() -> None:
+    """讀取 src/cms_aipilot/static/design-tokens.css（SDLCAIP1-30，內容比照
+    docs/design-system.md 第 1-5 節，固定不依賴文章資料）並上傳至 S3 bucket
+    根目錄 DESIGN_TOKENS_KEY（ContentType="text/css"）。讀檔或上傳任一步驟
+    失敗皆拋出 StaticPageGenerationError("design-tokens", exc)（沿用既有例外
+    類別，不新增錯誤碼/例外類別），比照 _generate_and_upload_search_page 的
+    既有模式。"""
+    bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
+    try:
+        with open(_DESIGN_TOKENS_PATH, encoding="utf-8") as f:
+            body = f.read()
+    except OSError as exc:
+        raise StaticPageGenerationError("design-tokens", exc) from exc
+
+    s3 = get_s3_client()
+    try:
+        s3.put_object(
+            Bucket=bucket, Key=DESIGN_TOKENS_KEY, Body=body, ContentType="text/css"
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise StaticPageGenerationError("design-tokens", exc) from exc
+
+
 def _publish_article_and_lists_or_rollback(article: Article, table) -> JSONResponse | None:
     """僅供 create_article 使用（不影響 update_article 既有的
     _publish_or_rollback）。依序呼叫 _generate_and_upload_static_page(article)、
     _generate_and_upload_list_pages(table)、
-    _generate_and_upload_search_index(table) 與
-    _generate_and_upload_search_page()，任一方拋出
+    _generate_and_upload_search_index(table)、
+    _generate_and_upload_search_page() 與
+    _generate_and_upload_design_tokens()，任一方拋出
     StaticPageGenerationError 即中止，執行既有 rollback，回傳 502
     JSONResponse；全部成功回傳 None。"""
     try:
@@ -469,6 +499,7 @@ def _publish_article_and_lists_or_rollback(article: Article, table) -> JSONRespo
         _generate_and_upload_list_pages(table)
         _generate_and_upload_search_index(table)
         _generate_and_upload_search_page()
+        _generate_and_upload_design_tokens()
     except StaticPageGenerationError as upload_exc:
         try:
             table.delete_item(Key={"id": article.id})
@@ -616,6 +647,21 @@ def delete_article(article_id: str) -> Response:
             content={
                 "error_code": "STATIC_SEARCH_PAGE_REGENERATION_FAILED",
                 "detail": "Article deleted but the search page could not be regenerated.",
+                "article_id": article_id,
+            },
+        )
+
+    try:
+        _generate_and_upload_design_tokens()
+    except StaticPageGenerationError:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error_code": "STATIC_DESIGN_TOKENS_REGENERATION_FAILED",
+                "detail": (
+                    "Article deleted but the design tokens stylesheet could not be "
+                    "regenerated."
+                ),
                 "article_id": article_id,
             },
         )
