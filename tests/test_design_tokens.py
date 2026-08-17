@@ -157,11 +157,10 @@ class TestGenerateAndUploadDesignTokens:
         Frontend may additionally define documented functional-color
         exceptions (docs/design-system.md §1's exception clause) that the
         backend-rendered static pages don't need — e.g. `--color-error`,
-        added by docs/design/SDLCAIP1-33.md (and consumed by sibling
-        SDLCAIP1-31.md) for admin-UI-only form validation styling.
-        FRONTEND_ONLY_TOKENS is the explicit allowlist of such exceptions;
-        every other custom property must still match exactly between the
-        two files."""
+        added by docs/design/SDLCAIP1-31.md and SDLCAIP1-33.md for
+        admin-UI-only form validation styling. FRONTEND_ONLY_TOKENS is the
+        explicit allowlist of such exceptions; every other custom property
+        must still match exactly between the two files."""
         _generate_and_upload_design_tokens()
         backend_body = mock_s3.put_object.call_args.kwargs["Body"]
 
