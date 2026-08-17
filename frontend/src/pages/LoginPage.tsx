@@ -47,8 +47,11 @@ export function LoginPage() {
   return (
     <form className="login-page__form" onSubmit={handleSubmit}>
       <h1 className="login-page__title">登入</h1>
-      <div>
+      <div className="login-page__field">
         <label htmlFor="username">帳號</label>
+        <span id="username-required" className="login-page__required">
+          必填
+        </span>
         <input
           id="username"
           name="username"
@@ -56,10 +59,14 @@ export function LoginPage() {
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           required
+          aria-describedby="username-required"
         />
       </div>
-      <div>
+      <div className="login-page__field">
         <label htmlFor="password">密碼</label>
+        <span id="password-required" className="login-page__required">
+          必填
+        </span>
         <input
           id="password"
           name="password"
@@ -67,9 +74,14 @@ export function LoginPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
+          aria-describedby="password-required"
         />
       </div>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert" className="login-page__error">
+          {error}
+        </p>
+      )}
       <button className="login-page__submit" type="submit" disabled={submitting}>
         登入
       </button>
