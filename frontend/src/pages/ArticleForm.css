@@ -1,0 +1,102 @@
+.article-form {
+  font-family: var(--font-family-base);
+  padding: var(--space-4);
+}
+
+.article-form__title {
+  text-align: center;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-h1);
+}
+
+.article-form__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  margin-bottom: var(--space-4);
+}
+
+.article-form__label-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.article-form__label {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-body);
+}
+
+.article-form__required-marker {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+}
+
+.article-form__input,
+.article-form__textarea {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-2) var(--space-3);
+}
+
+.article-form input:focus-visible,
+.article-form textarea:focus-visible,
+.article-form button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.article-form__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-error);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-meta);
+  line-height: var(--line-height-meta);
+  margin-top: var(--space-1);
+}
+
+.article-form__error-icon {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.article-form__actions {
+  display: flex;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.article-form__button {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  border-radius: 0;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.article-form__button--primary {
+  background-color: var(--color-text-primary);
+  color: var(--color-bg);
+  border: 1px solid var(--color-text-primary);
+}
+
+.article-form__button--secondary {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-text-primary);
+}

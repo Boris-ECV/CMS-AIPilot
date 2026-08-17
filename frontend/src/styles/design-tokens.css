@@ -5,6 +5,8 @@
   --color-text-secondary: #111111;
   --color-border: #E5E5E5;
   /* 注意：--color-accent 不定義，見 docs/design/SDLCAIP1-30.md 關鍵技術決策 */
+  /* 功能色例外（表單錯誤提示），見 docs/design/SDLCAIP1-33.md 關鍵技術決策 */
+  --color-error: #B00020;
 
   /* 字體家族（design-system.md §2）*/
   --font-family-base: -apple-system, BlinkMacSystemFont, "PingFang TC",
