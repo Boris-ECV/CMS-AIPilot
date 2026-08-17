@@ -142,6 +142,26 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
   directory causes git checkout races between concurrent subagents —
   observed failure mode: one subagent's uncommitted changes silently
   overwritten by another subagent's branch checkout in the same tree.
+- **Git worktree isolation does NOT isolate a shared Python virtualenv/
+  interpreter.** When multiple developer/tester subagents run in
+  parallel worktrees against the same project, `pip install -e ".[dev]"`
+  in one worktree repoints the *shared* global interpreter's editable
+  install to that worktree's code — a sibling subagent's `pytest` run
+  can then silently execute against the wrong worktree's source,
+  producing false pass/fail results that have nothing to do with the
+  actual code in front of it. Observed in this framework's pilot: two
+  parallel developer subagents (SDLCAIP1-34, SDLCAIP1-35) each
+  independently hit and self-diagnosed this. **Mitigation, not a full
+  fix**: instruct every parallel subagent to re-run
+  `pip install -e ".[dev]"` immediately before its *final* verification
+  test run (not just once at the start), and instruct the orchestrator
+  to do the same before independently re-verifying a branch in the
+  shared checkout. This does not eliminate the race (a subagent can
+  still install over you mid-run) — treat any single failing test run
+  with suspicion if the failure isn't obviously related to the diff,
+  and rerun after a fresh `pip install -e` before trusting a "FAIL".
+  A per-worktree virtualenv would remove this class of failure
+  entirely; until this project has one, this is a known sharp edge.
 - After a parallel delegation's ticket reaches Done (merged) or is
   abandoned, remove its worktree (`git worktree remove <path>`) —
   don't leave stale worktrees accumulating on disk.
