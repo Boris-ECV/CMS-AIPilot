@@ -1,0 +1,17 @@
+.login-page__title {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-h1);
+}
+
+.login-page__form {
+  font-family: var(--font-family-base);
+  padding: var(--space-4);
+}
+
+.login-page__submit {
+  font-family: var(--font-family-base);
+  padding: var(--space-2) var(--space-4);
+}
