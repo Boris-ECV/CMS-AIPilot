@@ -327,3 +327,9 @@
 {"ts": "2026-08-17T07:27:52Z", "event": "stage_transition", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"from": "Blocked", "to": "Refining"}}
 {"ts": "2026-08-17T07:28:08Z", "event": "stage_transition", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"from": "Refining", "to": "Awaiting Gate"}}
 {"ts": "2026-08-17T07:28:08Z", "event": "gate_review", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"gate": "G1", "mode": "manual", "result": "pending", "criteria_results": {"gherkin_present": "PASS", "out_of_scope_declared": "PASS", "no_open_questions": "PASS", "size_ok": "PASS"}}}
+{"ts": "2026-08-17T07:39:29Z", "event": "stage_transition", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-x2vn", "data": {"from": "Awaiting Gate", "to": "Designing"}}
+{"ts": "2026-08-17T07:39:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"from": "Awaiting Gate", "to": "Designing"}}
+{"ts": "2026-08-17T07:45:48Z", "event": "stage_transition", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-x2vn", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-17T07:45:48Z", "event": "gate_review", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-x2vn", "data": {"gate": "G1b", "mode": "manual", "result": "pending", "criteria_results": {"design_doc_exists": "PASS", "interface_declared": "PASS", "data_model_declared": "PASS", "no_open_design_questions": "PASS"}}}
+{"ts": "2026-08-17T07:45:55Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-17T07:45:55Z", "event": "gate_review", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"gate": "G1b", "mode": "manual", "result": "pending", "criteria_results": {"design_doc_exists": "PASS", "interface_declared": "PASS", "data_model_declared": "PASS", "no_open_design_questions": "PASS"}}}
