@@ -234,6 +234,21 @@ class TestArticleDetailPageDesignTokensApplied:
         )
         assert meta_color == "rgb(17, 17, 17)"
 
+        # AC2 also requires .article__title/.article__content to use
+        # var(--color-text-primary) -- distinct from the default browser
+        # black (rgb(0, 0, 0)) that would apply if the stylesheet/token
+        # failed to load, confirming the token is actually in effect.
+        title_color = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__title')).color"
+        )
+        content_color = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__content')).color"
+        )
+        assert title_color == "rgb(17, 17, 17)"
+        assert content_color == "rgb(17, 17, 17)"
+        assert title_color != "rgb(0, 0, 0)"
+        assert content_color != "rgb(0, 0, 0)"
+
         body_font_family = page.evaluate(
             "getComputedStyle(document.body).fontFamily"
         )
