@@ -333,3 +333,11 @@
 {"ts": "2026-08-17T07:45:48Z", "event": "gate_review", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-x2vn", "data": {"gate": "G1b", "mode": "manual", "result": "pending", "criteria_results": {"design_doc_exists": "PASS", "interface_declared": "PASS", "data_model_declared": "PASS", "no_open_design_questions": "PASS"}}}
 {"ts": "2026-08-17T07:45:55Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"from": "Designing", "to": "Awaiting Gate"}}
 {"ts": "2026-08-17T07:45:55Z", "event": "gate_review", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"gate": "G1b", "mode": "manual", "result": "pending", "criteria_results": {"design_doc_exists": "PASS", "interface_declared": "PASS", "data_model_declared": "PASS", "no_open_design_questions": "PASS"}}}
+{"ts": "2026-08-17T08:12:18Z", "event": "gate_review", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-q8fw", "data": {"gate": "G1b", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-17T08:12:19Z", "event": "gate_review", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-q8fw", "data": {"gate": "G1b", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-17T08:12:20Z", "event": "gate_review", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-q8fw", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-17T08:12:38Z", "event": "stage_transition", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-q8fw", "data": {"from": "Awaiting Gate", "to": "Ready"}}
+{"ts": "2026-08-17T08:12:38Z", "event": "stage_transition", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-q8fw", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-17T08:12:40Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-q8fw", "data": {"from": "Awaiting Gate", "to": "Ready"}}
+{"ts": "2026-08-17T08:12:40Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-q8fw", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-17T08:12:41Z", "event": "stage_transition", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-q8fw", "data": {"from": "Awaiting Gate", "to": "Designing"}}
