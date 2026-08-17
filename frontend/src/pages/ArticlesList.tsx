@@ -5,6 +5,8 @@ import type { ArticleSummary } from "../api/articles";
 import { ApiError } from "../api/client";
 import { useHandleUnauthorized } from "../auth/useHandleUnauthorized";
 import { editPath } from "../routes";
+import "../styles/design-tokens.css";
+import "./ArticlesList.css";
 
 const PAGE_SIZE = 10;
 const GENERIC_ERROR_MESSAGE = "載入文章列表失敗,請稍後再試";
@@ -97,7 +99,7 @@ export function ArticlesList() {
     <div>
       {notice && <p role="status">{notice}</p>}
       {deleteError && <p role="alert">{deleteError}</p>}
-      <table>
+      <table className="articles-list__table">
         <thead>
           <tr>
             <th>標題</th>
@@ -111,9 +113,15 @@ export function ArticlesList() {
               <td>{article.title}</td>
               <td>{article.published_at}</td>
               <td>
-                <Link to={editPath(article.id)}>編輯</Link>
+                <Link
+                  to={editPath(article.id)}
+                  className="articles-list__button articles-list__button--secondary"
+                >
+                  編輯
+                </Link>
                 <button
                   type="button"
+                  className="articles-list__button articles-list__button--danger"
                   data-testid={`delete-article-${article.id}`}
                   onClick={() => {
                     void handleDeleteClick(article);
@@ -129,6 +137,7 @@ export function ArticlesList() {
       <div>
         <button
           type="button"
+          className="articles-list__button articles-list__button--secondary"
           disabled={page <= 1}
           onClick={() => setPage((current) => current - 1)}
         >
@@ -139,6 +148,7 @@ export function ArticlesList() {
         </span>
         <button
           type="button"
+          className="articles-list__button articles-list__button--secondary"
           disabled={page >= totalPages}
           onClick={() => setPage((current) => current + 1)}
         >

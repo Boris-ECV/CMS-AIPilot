@@ -1,0 +1,49 @@
+.articles-list__table {
+  border-collapse: separate;
+  border-spacing: 0 var(--space-3); /* 水平 0、列間垂直間距 12px */
+  width: 100%;
+}
+
+.articles-list__table th,
+.articles-list__table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.articles-list__table th {
+  font-weight: var(--font-weight-h2);
+}
+
+.articles-list__button {
+  display: inline-block;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 0;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: var(--color-bg);
+}
+
+.articles-list__button--secondary {
+  border: 1px solid var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+
+.articles-list__button--danger {
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+}
+
+.articles-list__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.articles-list__button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
