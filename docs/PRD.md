@@ -354,6 +354,100 @@ Scenario: 後台管理介面實際引用此檔案
 - 工單依賴：無
 - 外部依賴：無
 
+## SDLCAIP1-31 — 後台登入頁 UI 套用設計規範（design-tokens.css 完整套用）
+
+**使用者故事:** As a 使用後台的管理者, I want 登入頁視覺符合 docs/design-system.md 定義的規範, so that 後台介面呈現一致、專業的視覺風格。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 色彩與字體套用 token
+  Given LoginPage.tsx 與 LoginPage.css（SDLCAIP1-30 已建立最小整合）
+  When 檢查頁面上標題、標籤、輸入框、按鈕的 computed style
+  Then 背景色/文字色/字體皆來自 design-tokens.css 的 --color-*/--font-family-base 變數，無寫死的色碼或字型；submit 按鈕套用 design-system.md §7 primary 按鈕規則（黑底白字，無圓角或極小圓角）
+
+Scenario: 間距、字級階層與欄位版面套用
+  Given docs/design-system.md §3 字級階層、§4 間距 scale、§7 表單欄位規則
+  When 檢查標題、表單欄位、按鈕的 font-size 與 padding/margin，以及 label 與 input 的相對位置
+  Then 數值皆取自該規範定義的階層/scale，無自訂魔術數字；label 位於對應欄位上方並靠左對齊
+
+Scenario: 必填欄位以文字標示
+  Given docs/design-system.md §7 表單欄位規則（必填不可僅靠顏色標示）
+  When 檢查帳號/密碼欄位的 label
+  Then 皆有可見文字（如「（必填）」或等效文字）標示必填，非僅依賴顏色或瀏覽器預設星號
+
+Scenario: 錯誤訊息樣式
+  Given docs/design-system.md §7（錯誤訊息文字紅色 + 圖示，不能只靠邊框變色）；紅色具體色值屬 §1 定義的例外情形，由本工單 Designing 階段的設計文件明確記錄
+  When 登入失敗顯示 role="alert" 錯誤訊息
+  Then 錯誤文字使用設計文件記錄的例外紅色並搭配圖示，不僅靠邊框變色
+
+Scenario: 表單無障礙基本要求
+  Given docs/design-system.md §8
+  When 檢查帳號/密碼欄位
+  Then 皆有對應 <label>，focus 狀態有可見樣式（非 outline: none 且無替代）
+
+Scenario: 既有測試不受影響
+  Given 既有 LoginPage.test.tsx 與 tests/e2e/test_design_tokens_e2e.py
+  When 套用完整樣式後執行測試
+  Then 全數通過，不因新增 className/CSS 導致既有選取器失效
+```
+
+**範圍外:**
+- 不含表單驗證邏輯或登入行為變更，僅視覺樣式
+- 不含按鈕元件系統化抽象（如共用 Button 元件），僅本頁面套用樣式規則
+- 不含 secondary/danger 按鈕變體套用（登入頁僅有一個 primary 送出按鈕）
+
+**依賴:**
+- 工單依賴：blocked by SDLCAIP1-30（已 DONE）
+- 外部依賴：無
+- 設計依賴：錯誤訊息紅色具體色值由 architect 於 Designing 階段依 design-system.md §1 例外條款決定並記錄於設計文件
+
+## SDLCAIP1-33 — 後台新增/編輯文章表單 UI 套用設計規範
+
+**使用者故事:** As a 使用後台的管理者, I want 新增/編輯文章表單視覺符合 docs/design-system.md 定義的規範, so that 後台介面呈現一致、專業的視覺風格。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 色彩與字體套用 token
+  Given ArticleForm.tsx（目前完全無 CSS）
+  When 檢查表單標題、欄位、按鈕的 computed style
+  Then 皆來自 design-tokens.css 的 --color-*/--font-family-base 變數
+
+Scenario: 表單欄位規則套用
+  Given docs/design-system.md §7 表單欄位規則
+  When 檢查標題/內文/發布時間欄位
+  Then label 置於欄位上方靠左；必填以文字標示（非僅顏色）；錯誤訊息為紅色文字+圖示，不僅靠邊框變色
+
+Scenario: 無障礙基本要求
+  Given docs/design-system.md §8
+  When 檢查所有表單欄位
+  Then 皆有對應 <label>，focus 狀態有可見樣式
+
+Scenario: 按鈕變體套用
+  Given ArticleForm.tsx 的「儲存」(submit) 與「取消」(type="button") 按鈕
+  When 檢查兩按鈕的 computed style
+  Then 「儲存」套用 primary 樣式（黑底白字）；「取消」套用 secondary 樣式（白底黑框）；皆無圓角或僅極小圓角
+
+Scenario: 標題與版面對齊規則套用
+  Given docs/design-system.md §6 對齊規則
+  When 檢查表單 <h1>（「新增文章」/「編輯文章」）與各欄位 label
+  Then <h1> 置中；label 與欄位維持靠左
+
+Scenario: 既有測試不受影響
+  Given 既有 ArticleForm 相關測試（若無則本 Story 需補上基本 render/驗證測試）
+  When 套用樣式後執行 npm run test
+  Then 全數通過
+```
+
+**範圍外:**
+- 不含表單驗證邏輯或送出行為變更，僅視覺樣式
+- 不含共用 Button/Input 元件抽象化，僅本頁面套用樣式規則
+
+**依賴:**
+- 工單依賴：blocked by SDLCAIP1-30（已 DONE）
+- 外部依賴：無
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter

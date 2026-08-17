@@ -320,3 +320,10 @@
 {"ts": "2026-08-17T07:15:42Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-m4hz", "data": {"from": "Backlog", "to": "Refining"}}
 {"ts": "2026-08-17T07:18:03Z", "event": "stage_transition", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-m4hz", "data": {"from": "Refining", "to": "Awaiting Gate"}}
 {"ts": "2026-08-17T07:18:03Z", "event": "gate_review", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-m4hz", "data": {"gate": "G1", "mode": "manual", "result": "pending", "criteria_results": {"gherkin_present": "PASS", "out_of_scope_declared": "PASS", "no_open_questions": "PASS", "size_ok": "PASS"}}}
+{"ts": "2026-08-17T07:20:54Z", "event": "gate_review", "ticket": "SDLCAIP1-31", "agent": "orch-20260817-x2vn", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-17T07:21:41Z", "event": "gate_review", "ticket": "SDLCAIP1-33", "agent": "orch-20260817-x2vn", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-17T07:24:44Z", "event": "human_intervention", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"kind": "human_input_answer", "ticket": "SDLCAIP1-37", "answer": "Q1->A, Q2->A"}}
+{"ts": "2026-08-17T07:26:15Z", "event": "unblocked", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"reason": "HUMAN-INPUT SDLCAIP1-37 answered"}}
+{"ts": "2026-08-17T07:27:52Z", "event": "stage_transition", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"from": "Blocked", "to": "Refining"}}
+{"ts": "2026-08-17T07:28:08Z", "event": "stage_transition", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"from": "Refining", "to": "Awaiting Gate"}}
+{"ts": "2026-08-17T07:28:08Z", "event": "gate_review", "ticket": "SDLCAIP1-32", "agent": "orch-20260817-x2vn", "data": {"gate": "G1", "mode": "manual", "result": "pending", "criteria_results": {"gherkin_present": "PASS", "out_of_scope_declared": "PASS", "no_open_questions": "PASS", "size_ok": "PASS"}}}
