@@ -51,6 +51,16 @@ report to the human supervisor.
 4. **Never push to main directly, never merge a PR that has not passed
    its gate, never force-push, never delete branches you did not create
    this session.**
+4b. **Never `git commit` while the shared checkout's HEAD is on local
+   `main`** — not even for a small metrics/doc commit you plan to
+   branch off "in a second." Rule 4 is about push; the safest way to
+   never violate it is to make on-main commits structurally impossible
+   in your own workflow. `git checkout -b <branch>` first, every time.
+   If unsure what HEAD is on, check `git branch --show-current` before
+   committing. Observed in this framework's pilot: a metrics commit
+   landed on local `main` out of habit after several branch/PR cycles;
+   caught before push, but required `git branch` + `git reset --hard
+   origin/main` to undo.
 5. **When requirements are ambiguous, create a HUMAN-INPUT ticket. Never
    fill gaps with assumptions.**
 6. **Follow the lock protocol (docs/01 §4) before working on any ticket.**
@@ -67,6 +77,26 @@ report to the human supervisor.
    via Bash (docs/07 §1 "如何寫入").
 8. **Respect token discipline** (config/limits.yaml): WIP limit, story cap
    per session, clean wrap-up when context gets heavy.
+9. **A lesson learned beyond this single session must be promoted into a
+   durable, git-tracked rule — this file, the relevant agent's `.md`, or
+   the appropriate `docs/*.md` — not left as only a persistent-memory
+   entry.** Saving to your own memory is fine and often useful (it can
+   hold session-local nuance a terse rule can't), but memory is scoped
+   to this local Claude Code installation and project path — it is NOT
+   part of the git repo. It will not survive the project being copied
+   into a template for a new project, will not be visible to a
+   differently-scoped session, and is not reviewable by the human
+   alongside the code the way a `CLAUDE.md`/docs change is. Concretely:
+   whenever you write a `feedback_*`-style memory about a bug, race
+   condition, or process gap, in the same turn (or a clearly-flagged
+   fast-follow) also propose or make the corresponding rule edit here —
+   do not treat the memory entry as sufficient on its own. This rule
+   exists because it was violated repeatedly during this framework's
+   pilot: six separate `feedback_*` memories accumulated in one
+   project's memory store over the course of the pilot, none promoted
+   to a rule, before a human caught the gap and asked for all of them
+   to be written up — see rules 3c and 4b above and the Delegation
+   rules below for the ones recovered this way.
 
 ## Bootstrap (every new session)
 
@@ -112,10 +142,53 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
   directory causes git checkout races between concurrent subagents —
   observed failure mode: one subagent's uncommitted changes silently
   overwritten by another subagent's branch checkout in the same tree.
-  Sequential delegation (one ticket at a time) does not need this.
 - After a parallel delegation's ticket reaches Done (merged) or is
   abandoned, remove its worktree (`git worktree remove <path>`) —
   don't leave stale worktrees accumulating on disk.
+- **Sequential (one-ticket-at-a-time) delegation still needs care in
+  the shared checkout — it is not exempt from git-state races.** Two
+  confirmed failure modes from this framework's pilot, neither
+  requiring parallel delegation: (1) the orchestrator doing its own
+  housekeeping — switching branches, or writing a file like
+  `metrics/events.jsonl` — in the shared checkout while a single
+  developer/tester subagent is active there; that subagent's own `git
+  checkout -b ...` is not guaranteed to preserve unrelated uncommitted
+  changes sitting in the tree, and once silently discarded they cannot
+  be recovered except by reconstructing from session context. (2)
+  Launching a *second* subagent — even a read-only one, even on a
+  different ticket — against the same shared checkout while a first
+  subagent is active; the second subagent's Read/Grep has no isolation
+  from the first subagent's checked-out branch and can report its
+  mid-flight, not-yet-merged files as "already in main." **Rule:**
+  commit-and-push (or `git stash` under a named stash) any uncommitted
+  change in the shared checkout immediately, before delegating a
+  subagent that will do its own checkout there — do not batch pending
+  writes "to commit later" across a delegation boundary. Do not run
+  orchestrator git ops or launch a second subagent against a checkout
+  another subagent currently has checked out. Never trust a subagent's
+  claim about what's "in main" without independently verifying (`git
+  show main:<path>`).
+- **Before delegating any subagent with no Bash tool (e.g. reviewer)
+  whose task depends on repository file state, `git checkout
+  <target-branch>` in the shared working directory yourself as the
+  last step before the delegation call.** Such a subagent cannot check
+  out a branch itself; it only reads whatever the working directory
+  already has checked out. Never assume "it's probably still on the
+  right branch from the last thing I did" — after any prior git op
+  (including a metrics commit), the working directory may be back on
+  `main`. If a read-only subagent reports it cannot verify the PR or
+  that the code doesn't match what was described, treat that as a
+  signal to check the current branch, not as the subagent being
+  unhelpful.
+- **Never let "only frontend files changed" (or the backend equivalent)
+  be grounds for a developer/tester/reviewer to skip the full test
+  suite.** Require both `pytest -q` and `npm run test` (or the
+  project's declared equivalents) to actually run and be reported
+  green before accepting a stage as complete — "no files on that side
+  changed" is not evidence of "tests on that side still pass";
+  cross-file consistency tests (e.g. asserting two artifacts stay
+  byte-identical) can live on the side that wasn't touched and fail
+  precisely because the other side was.
 
 ## Escalation
 
@@ -133,3 +206,11 @@ always be recoverable from the board alone.
 
 Reports and ticket comments to the human: Traditional Chinese (繁體中文).
 Code, commits, branch names, PR descriptions, config: English.
+
+When writing Traditional Chinese into a Jira field, prefer passing
+literal UTF-8 text over hand-typed `\uXXXX` escapes. A single-digit
+escape typo silently produces a different-but-valid CJK character —
+the JSON is well-formed and the API call succeeds, so nothing errors;
+the mistake only surfaces if a human happens to read the rendered
+text closely. If escapes are unavoidable, re-read the field immediately
+after writing and visually check the CJK characters before moving on.
