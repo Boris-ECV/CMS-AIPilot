@@ -243,11 +243,34 @@ def _list_page_key(page: int) -> str:
 
 
 _LIST_PAGE_STYLE = """
-    .article-list { list-style: none; padding: 0; margin: 0; }
-    .article-list__item { padding: 12px 0; border-bottom: 1px solid #eee; }
-    .article-list__link { font-size: 1.125rem; text-decoration: none; }
-    .article-list__meta { display: block; color: #666; font-size: 0.875rem; margin-top: 4px; }
-    .pagination { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+    .article-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-family: var(--font-family-base);
+    }
+    .article-list__item {
+      padding: var(--space-3) 0;
+      text-align: center;
+    }
+    .article-list__link {
+      font-size: 1.125rem;
+      text-decoration: none;
+      color: var(--color-text-primary);
+    }
+    .article-list__meta {
+      display: block;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-meta);
+      line-height: var(--line-height-meta);
+      margin-top: var(--space-1);
+    }
+    .pagination {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      margin-top: var(--space-5);
+    }
     """
 
 
@@ -283,6 +306,7 @@ def _render_list_page_html(page_items: list[dict], page: int, total_pages: int) 
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         f"<title>文章列表 - 第 {page} 頁</title>"
         f"<style>{_ARTICLE_PAGE_STYLE}{_LIST_PAGE_STYLE}</style>"
+        '<link rel="stylesheet" href="/design-tokens.css">'
         "</head>"
         "<body>"
         '<a href="/search.html">搜尋文章</a>'
