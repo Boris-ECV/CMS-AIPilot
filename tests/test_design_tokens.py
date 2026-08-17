@@ -13,6 +13,7 @@ file itself (docs/design/SDLCAIP1-30.md 介面/API 契約).
 from __future__ import annotations
 
 import os
+import re
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -149,9 +150,18 @@ class TestGenerateAndUploadDesignTokens:
     def test_frontend_copy_is_byte_identical_to_backend_static_copy(self, mock_s3):
         """Both `src/cms_aipilot/static/design-tokens.css` (uploaded to S3,
         asserted above) and `frontend/src/styles/design-tokens.css`
-        (imported by LoginPage.tsx, AC3) are meant to be the same token
-        values per docs/design/SDLCAIP1-30.md 關鍵技術決策. This guards
-        against the two hand-maintained copies drifting apart."""
+        (imported by LoginPage.tsx, AC3) are meant to share the same base
+        §1-5 token values per docs/design/SDLCAIP1-30.md 關鍵技術決策. This
+        guards against the two hand-maintained copies drifting apart.
+
+        Frontend may additionally define documented functional-color
+        exceptions (docs/design-system.md §1's exception clause) that the
+        backend-rendered static pages don't need — e.g. `--color-error`,
+        added by docs/design/SDLCAIP1-33.md (and consumed by sibling
+        SDLCAIP1-31.md) for admin-UI-only form validation styling.
+        FRONTEND_ONLY_TOKENS is the explicit allowlist of such exceptions;
+        every other custom property must still match exactly between the
+        two files."""
         _generate_and_upload_design_tokens()
         backend_body = mock_s3.put_object.call_args.kwargs["Body"]
 
@@ -161,7 +171,23 @@ class TestGenerateAndUploadDesignTokens:
         with open(frontend_path, encoding="utf-8") as f:
             frontend_body = f.read()
 
-        assert backend_body == frontend_body
+        FRONTEND_ONLY_TOKENS = {"--color-error"}
+
+        def parse_tokens(css_text: str) -> dict[str, str]:
+            return dict(re.findall(r"(--[\w-]+):\s*([^;]+);", css_text))
+
+        backend_tokens = parse_tokens(backend_body)
+        frontend_tokens = parse_tokens(frontend_body)
+
+        frontend_only = set(frontend_tokens) - set(backend_tokens)
+        assert frontend_only <= FRONTEND_ONLY_TOKENS, (
+            f"undocumented frontend-only token(s), add to FRONTEND_ONLY_TOKENS "
+            f"if intentional: {frontend_only - FRONTEND_ONLY_TOKENS}"
+        )
+        shared_frontend_tokens = {
+            k: v for k, v in frontend_tokens.items() if k not in FRONTEND_ONLY_TOKENS
+        }
+        assert backend_tokens == shared_frontend_tokens
 
     def test_upload_failure_raises_static_page_generation_error(self, mock_s3):
         mock_s3.put_object.side_effect = ClientError(
