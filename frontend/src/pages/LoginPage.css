@@ -11,7 +11,65 @@
   padding: var(--space-4);
 }
 
-.login-page__submit {
+.login-page__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.login-page__field label {
   font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  color: var(--color-text-primary);
+}
+
+.login-page__field input {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-page__required {
+  font-size: var(--font-size-meta);
+  color: var(--color-text-secondary);
+}
+
+.login-page__error {
+  color: var(--color-error);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
+  margin-top: var(--space-2);
+}
+
+.login-page__error::before {
+  content: "⚠ ";
+}
+
+.login-page__field input:focus-visible,
+.login-page__submit:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.login-page__submit {
+  background-color: var(--color-text-primary);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 2px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-body);
   padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.login-page__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
