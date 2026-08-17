@@ -166,6 +166,36 @@ _ARTICLE_PAGE_STYLE = """
     """
 
 
+_ARTICLE_DETAIL_PAGE_STYLE = """
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: var(--space-4);
+      font-family: var(--font-family-base);
+      line-height: 1.6;
+      overflow-wrap: break-word;
+    }
+    .article { max-width: 100%; }
+    .article__title { font-size: 1.5rem; margin: 0 0 var(--space-2); color: var(--color-text-primary); text-align: center; }
+    .article__meta { display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: var(--space-4); text-align: center; }
+    .article__content { white-space: pre-wrap; color: var(--color-text-primary); text-align: left; }
+    img, pre, table { max-width: 100%; }
+
+    /* 平板 768-1024px */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      body { padding: var(--space-5); }
+      .article__title { font-size: 1.75rem; }
+    }
+
+    /* 桌機 >1024px */
+    @media (min-width: 1025px) {
+      body { padding: var(--space-6); }
+      .article { max-width: 800px; margin: 0 auto; }
+      .article__title { font-size: 2rem; }
+    }
+    """
+
+
 def _generate_and_upload_static_page(article: Article) -> None:
     bucket = os.environ["ARTICLES_STATIC_BUCKET_NAME"]
     key = f"articles/{article.id}.html"
@@ -178,7 +208,8 @@ def _generate_and_upload_static_page(article: Article) -> None:
         '<html lang="zh-Hant"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         f"<title>{title}</title>"
-        f"<style>{_ARTICLE_PAGE_STYLE}</style>"
+        '<link rel="stylesheet" href="/design-tokens.css">'
+        f"<style>{_ARTICLE_DETAIL_PAGE_STYLE}</style>"
         "</head>"
         '<body><article class="article">'
         f'<h1 class="article__title">{title}</h1>'

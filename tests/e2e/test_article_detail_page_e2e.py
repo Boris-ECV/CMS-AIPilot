@@ -7,24 +7,35 @@ by `_generate_and_upload_static_page` (src/cms_aipilot/main.py) and uploaded
 to S3, served directly to site visitors. There is no build/dev server to
 stand up for it, so this suite generates the exact HTML string the function
 would upload (S3 mocked, same as tests/test_article_detail_page.py) and
-loads it into a real browser via `page.set_content`, then asserts on actual
-rendered/computed layout at each of the three breakpoints named in the
-acceptance criteria — something a string-level pytest assertion cannot
-verify (horizontal scroll, single-column flow, centered max-width).
+loads it into a real browser, then asserts on actual rendered/computed
+layout at each of the three breakpoints named in the acceptance criteria —
+something a string-level pytest assertion cannot verify (horizontal scroll,
+single-column flow, centered max-width).
+
+Since SDLCAIP1-34, the page's `<head>` links an external
+`/design-tokens.css` stylesheet (SDLCAIP1-30). A page loaded via
+`page.set_content` has `about:blank` as its origin, so that relative
+`<link>` never actually issues a request and the stylesheet never loads --
+same root cause as test_search_page_e2e.py's `/search/index.json` fetch
+issue. We use the same fake-https-URL + `page.route`/`page.goto`
+interception pattern here instead.
 """
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Route
 
-from cms_aipilot.main import Article, _generate_and_upload_static_page
+from cms_aipilot.main import _DESIGN_TOKENS_PATH, Article, _generate_and_upload_static_page
 
 MOBILE_WIDTH = 375
 TABLET_WIDTH = 900
 DESKTOP_WIDTH = 1280
 VIEWPORT_HEIGHT = 800
+
+ARTICLE_PAGE_URL = "https://e2e-article-page.example/articles/a1.html"
+DESIGN_TOKENS_URL = "https://e2e-article-page.example/design-tokens.css"
 
 
 def _generated_html(monkeypatch, article: Article) -> str:
@@ -33,6 +44,29 @@ def _generated_html(monkeypatch, article: Article) -> str:
     with patch("cms_aipilot.main.get_s3_client", return_value=fake_s3):
         _generate_and_upload_static_page(article)
     return fake_s3.put_object.call_args.kwargs["Body"]
+
+
+def _load_article_page(page: Page, monkeypatch, article: Article) -> None:
+    """Loads the generated article detail page into the browser with
+    `/design-tokens.css` intercepted to return the real stylesheet content
+    (read directly from `_DESIGN_TOKENS_PATH`, not via
+    `_generate_and_upload_design_tokens()` -- that function's job is
+    uploading to S3, an unrelated side effect this suite doesn't need)."""
+    html = _generated_html(monkeypatch, article)
+
+    with open(_DESIGN_TOKENS_PATH, encoding="utf-8") as f:
+        design_tokens_css = f.read()
+
+    def handle_page(route: Route) -> None:
+        route.fulfill(status=200, content_type="text/html", body=html)
+
+    def handle_design_tokens(route: Route) -> None:
+        route.fulfill(status=200, content_type="text/css", body=design_tokens_css)
+
+    page.route(ARTICLE_PAGE_URL, handle_page)
+    page.route("**/design-tokens.css", handle_design_tokens)
+
+    page.goto(ARTICLE_PAGE_URL)
 
 
 def _no_horizontal_scroll(page: Page) -> bool:
@@ -51,8 +85,7 @@ class TestArticleDetailPageFullContentRendersInBrowser:
             content="E2E full plain-text article body.",
             published_at="2026-08-10T09:30:00",
         )
-        html = _generated_html(monkeypatch, article)
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         assert page.get_by_text("E2E Article Title").is_visible()
         assert page.get_by_text("E2E full plain-text article body.").is_visible()
@@ -69,9 +102,8 @@ class TestArticleDetailPageMobileLayout:
             content="Mobile body content " * 20,
             published_at="2026-01-01T00:00:00",
         )
-        html = _generated_html(monkeypatch, article)
         page.set_viewport_size({"width": MOBILE_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         assert _no_horizontal_scroll(page)
         article_box = page.locator(".article").bounding_box()
@@ -85,9 +117,8 @@ class TestArticleDetailPageMobileLayout:
             content="a" * 300,  # single unbroken "word"
             published_at="2026-01-01T00:00:00",
         )
-        html = _generated_html(monkeypatch, article)
         page.set_viewport_size({"width": MOBILE_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         assert _no_horizontal_scroll(page)
 
@@ -102,9 +133,8 @@ class TestArticleDetailPageTabletLayout:
             content="Tablet body content " * 20,
             published_at="2026-01-01T00:00:00",
         )
-        html = _generated_html(monkeypatch, article)
         page.set_viewport_size({"width": TABLET_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         assert _no_horizontal_scroll(page)
 
@@ -112,16 +142,15 @@ class TestArticleDetailPageTabletLayout:
         article = Article(
             id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
         )
-        html = _generated_html(monkeypatch, article)
 
         page.set_viewport_size({"width": MOBILE_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
         mobile_padding = page.evaluate(
             "getComputedStyle(document.body).paddingLeft"
         )
 
         page.set_viewport_size({"width": TABLET_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
         tablet_padding = page.evaluate(
             "getComputedStyle(document.body).paddingLeft"
         )
@@ -139,9 +168,8 @@ class TestArticleDetailPageDesktopLayout:
             content="Desktop body content " * 20,
             published_at="2026-01-01T00:00:00",
         )
-        html = _generated_html(monkeypatch, article)
         page.set_viewport_size({"width": DESKTOP_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         assert _no_horizontal_scroll(page)
 
@@ -149,9 +177,8 @@ class TestArticleDetailPageDesktopLayout:
         article = Article(
             id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
         )
-        html = _generated_html(monkeypatch, article)
         page.set_viewport_size({"width": DESKTOP_WIDTH, "height": VIEWPORT_HEIGHT})
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         article_box = page.locator(".article").bounding_box()
         assert article_box is not None
@@ -175,8 +202,7 @@ class TestArticleDetailPageEscapingRendersAsText:
             content='<img src=x onerror="window.__injected2 = true"> plain & text',
             published_at="2026-01-01T00:00:00",
         )
-        html = _generated_html(monkeypatch, article)
-        page.set_content(html)
+        _load_article_page(page, monkeypatch, article)
 
         # No script/img injection actually executed or rendered as an element.
         assert page.evaluate("window.__injected") is None
@@ -187,3 +213,42 @@ class TestArticleDetailPageEscapingRendersAsText:
         # The special characters are visible as literal text content instead.
         assert page.get_by_text('"quoted"').is_visible()
         assert page.get_by_text("plain & text").is_visible()
+
+
+class TestArticleDetailPageDesignTokensApplied:
+    """Scenario: 文章詳細頁套用 design-tokens.css 色彩/字體/對齊規範（SDLCAIP1-34）"""
+
+    def test_design_tokens_are_applied_to_computed_styles(
+        self, page: Page, monkeypatch
+    ) -> None:
+        article = Article(
+            id="a1",
+            title="Token Title",
+            content="Token body content.",
+            published_at="2026-01-01T00:00:00",
+        )
+        _load_article_page(page, monkeypatch, article)
+
+        meta_color = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__meta')).color"
+        )
+        assert meta_color == "rgb(17, 17, 17)"
+
+        body_font_family = page.evaluate(
+            "getComputedStyle(document.body).fontFamily"
+        )
+        assert "PingFang TC" in body_font_family
+
+        title_text_align = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__title')).textAlign"
+        )
+        meta_text_align = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__meta')).textAlign"
+        )
+        assert title_text_align == "center"
+        assert meta_text_align == "center"
+
+        content_text_align = page.evaluate(
+            "getComputedStyle(document.querySelector('.article__content')).textAlign"
+        )
+        assert content_text_align == "left"
