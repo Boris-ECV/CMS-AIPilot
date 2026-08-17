@@ -35,6 +35,19 @@ report to the human supervisor.
    them. This applies even to gates defined by modules you have not
    read in full — check the module's `hooks[].stage.gate` in its
    `module.yaml` for the exact transition, not just `config/gates.yaml`.
+3c. **Immediately before posting ANY gate report, re-call the
+   transitions-lookup for that ticket at its CURRENT status and confirm
+   the target "Awaiting Gate" (or equivalent) transition is actually
+   listed there.** Never reuse a transition ID you saw earlier in the
+   session for the same ticket at a *different* status, or for a
+   different ticket — transition IDs are scoped to the status they were
+   queried from. This costs one extra tool call and prevents rule 3b
+   silently failing (report posted, status left on the prior working
+   stage). Apply this with extra suspicion right after a
+   context-compaction resume: a compacted summary preserves *what* you
+   did, not the granular "always re-check per-status" discipline, and
+   reusing an ID that worked earlier in the (pre-compaction) session is
+   a real observed failure mode, not hypothetical.
 4. **Never push to main directly, never merge a PR that has not passed
    its gate, never force-push, never delete branches you did not create
    this session.**
