@@ -88,6 +88,42 @@ class TestArticleListPageColorAndFontUseDesignTokens:
         assert "PingFang TC" in font_family
 
 
+class TestArticleListMetaUsesDesignTokens:
+    """AC1: the date/meta element's color/font-size/line-height also switch
+    to var(--color-text-secondary)/var(--font-size-meta)/var(--line-height-
+    meta) -- not just the title link. The design doc explicitly calls out
+    that .article-list__meta gets these three token substitutions, and this
+    gap was not covered by the developer's own tests (only the title link's
+    color was asserted there)."""
+
+    def test_meta_color_uses_text_secondary_token(self, page: Page) -> None:
+        _load_list_page(page)
+
+        meta = page.locator(".article-list__meta")
+        color = meta.evaluate("el => getComputedStyle(el).color")
+
+        # --color-text-secondary: #111111 -> rgb(17, 17, 17)
+        assert color == "rgb(17, 17, 17)"
+
+    def test_meta_font_size_uses_font_size_meta_token(self, page: Page) -> None:
+        _load_list_page(page)
+
+        meta = page.locator(".article-list__meta")
+        font_size = meta.evaluate("el => getComputedStyle(el).fontSize")
+
+        # --font-size-meta: 0.875rem, root font-size 16px -> 14px
+        assert font_size == "14px"
+
+    def test_meta_line_height_uses_line_height_meta_token(self, page: Page) -> None:
+        _load_list_page(page)
+
+        meta = page.locator(".article-list__meta")
+        line_height = meta.evaluate("el => getComputedStyle(el).lineHeight")
+
+        # --line-height-meta: 1.5, font-size 14px -> 21px
+        assert line_height == "21px"
+
+
 class TestArticleListItemHasNoBorderShadowOrBackground:
     """AC2: list items don't use border/box-shadow/background-color for
     separation."""
