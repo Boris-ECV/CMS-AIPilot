@@ -155,30 +155,22 @@ Scenario: 文章詳細頁顯示完整內容
   Given 一篇已發布的文章（標題、純文字內文、發布時間）
   When 靜態頁面產生後於瀏覽器開啟該文章的靜態頁
   Then 頁面顯示文章標題、內文全文、發布時間
-```
 
-```gherkin
 Scenario: 手機寬度版面正常顯示
   Given 文章詳細頁已產生
   When 以手機寬度（<768px）檢視頁面
   Then 內容單欄顯示、無橫向捲動、文字可讀不溢出
-```
 
-```gherkin
 Scenario: 平板寬度版面正常顯示
   Given 文章詳細頁已產生
   When 以平板寬度（768px–1024px）檢視頁面
   Then 版面依平板寬度調整、無橫向捲動
-```
 
-```gherkin
 Scenario: 桌機寬度版面正常顯示
   Given 文章詳細頁已產生
   When 以桌機寬度（>1024px）檢視頁面
   Then 版面套用桌機排版（如內容最大寬度限制、置中）、無橫向捲動
-```
 
-```gherkin
 Scenario: 文章內容含特殊字元時正確逸出
   Given 文章標題或內文含 HTML 特殊字元（如 <, &, "）
   When 靜態頁面產生
@@ -443,6 +435,90 @@ Scenario: 既有測試不受影響
 **範圍外:**
 - 不含表單驗證邏輯或送出行為變更，僅視覺樣式
 - 不含共用 Button/Input 元件抽象化，僅本頁面套用樣式規則
+
+**依賴:**
+- 工單依賴：blocked by SDLCAIP1-30（已 DONE）
+- 外部依賴：無
+
+## SDLCAIP1-34 — 前台文章詳細頁 UI 套用設計規範
+
+**使用者故事:** As a 前台訪客, I want 文章詳細頁視覺符合 docs/design-system.md 定義的規範, so that 前台網站呈現一致、有質感的編輯感風格。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 頁面引用 design-tokens.css
+  Given main.py 的 _generate_and_upload_static_page 函式
+  When 產生文章詳細頁靜態 HTML
+  Then <head> 包含 <link rel="stylesheet" href="/design-tokens.css">（絕對路徑，比照既有 href="/search.html" 慣例）
+
+Scenario: 色彩與字體改用 token
+  Given _ARTICLE_PAGE_STYLE 的既有色彩與字體定義
+  When 檢查產生的靜態頁面樣式
+  Then 色彩改為 var(--color-text-primary)（標題/內文）、var(--color-text-secondary)（meta，取代寫死的 #666）；字體改為 var(--font-family-base)
+
+Scenario: 標題/meta 置中、內文靠左
+  Given _ARTICLE_PAGE_STYLE 的既有版面規則
+  When 檢查產生的靜態頁面
+  Then .article__title 與 .article__meta 置中（text-align: center），.article__content 維持靠左
+
+Scenario: 既有響應式斷點行為不變
+  Given SDLCAIP1-20 已實作的 768px/1025px 斷點邏輯
+  When 檢查套用設計 token 後的頁面在各斷點的版面
+  Then 斷點觸發邏輯與版面行為與套用前一致，僅換色彩/字體/間距數值
+
+Scenario: 既有 e2e 測試更新為攔截模式
+  Given tests/e2e/test_article_detail_page_e2e.py 現行使用 page.set_content 載入頁面
+  When 執行 e2e 測試
+  Then 測試改用 page.route+page.goto 攔截模式載入頁面與 design-tokens.css（因外部樣式表在 about:blank origin 下不會實際載入）
+```
+
+**不在此範圍:**
+- 文章內容渲染邏輯變更
+- 斷點值或版面結構重新設計
+- design-tokens.css 本身內容變更（已由 SDLCAIP1-30 定案）
+
+**依賴:**
+- 工單依賴：blocked by SDLCAIP1-30（已 DONE）
+- 外部依賴：無
+
+## SDLCAIP1-35 — 前台首頁文章列表 UI 套用設計規範
+
+**使用者故事:** As a 前台訪客, I want 首頁文章列表視覺符合 docs/design-system.md 定義的規範, so that 前台網站呈現一致、有質感的編輯感風格。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 色彩與字體改用 token
+  Given main.py 的 _LIST_PAGE_STYLE 與 _ARTICLE_PAGE_STYLE 串接組成單一 <style>
+  When 檢查產生的首頁列表頁靜態 HTML
+  Then 色彩/字體改為 var(--color-*)/var(--font-family-base)；頁面 <head> 新增 <link> 引用 design-tokens.css（路徑慣例由 architect 於 Designing 階段決定）
+
+Scenario: 列表項不用邊框/陰影/色塊
+  Given 既有 _LIST_PAGE_STYLE 中 .article-list__item 的 border-bottom: 1px solid #eee 定義
+  When 檢查套用設計 token 後的列表頁
+  Then .article-list__item 移除邊框，改以 --space-* 間距 token 做分隔
+
+Scenario: 標題與日期置中
+  Given _render_list_page_html 的既有版面規則
+  When 檢查列表項的標題與日期
+  Then .article-list__link（標題）與 .article-list__meta（日期）文字置中（注意：現行未渲染文章摘要/內文欄位，故不含「摘要靠左」）
+
+Scenario: 既有分頁與響應式斷點行為不變
+  Given SDLCAIP1-23/24 已實作的分頁（_list_page_key、上一頁/下一頁 nav）與 768px/1025px 斷點行為
+  When 檢查套用設計 token 後的頁面
+  Then 分頁邏輯與響應式斷點行為與套用前一致
+
+Scenario: 新增真實瀏覽器樣式驗證
+  Given 現行無任何涵蓋首頁列表頁的真實瀏覽器 e2e 測試（僅有 TestClient 子字串測試，無法驗證 computed CSS）
+  When 比照 tests/e2e/test_article_detail_page_e2e.py 的既有模式（mock S3 擷取產出的 Body、page.set_content() 載入；本頁無 client-side script/fetch，不需 page.route() 攔截）新增 e2e 測試檔
+  Then 新測試驗證 token 色彩/字體、無 border/box-shadow/background、標題與日期置中，全數通過
+```
+
+**不在此範圍:**
+- 分頁邏輯、資料來源變更
+- 斷點值或版面結構重新設計
+- 新增文章摘要/內文片段至列表項（現行未渲染此欄位，屬新功能）
 
 **依賴:**
 - 工單依賴：blocked by SDLCAIP1-30（已 DONE）
