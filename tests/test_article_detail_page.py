@@ -100,6 +100,75 @@ class TestArticleDetailPageResponsiveLayoutMarkup:
         assert ".article { max-width: 800px; margin: 0 auto; }" in body
 
 
+class TestArticleDetailPageDesignTokensMarkup:
+    """Scenario: 文章詳細頁套用 design-tokens.css 色彩/字體/對齊規範
+    (SDLCAIP1-34) -- string-level checks on the generated HTML/CSS that the
+    real-browser computed-style assertions in
+    tests/e2e/test_article_detail_page_e2e.py::TestArticleDetailPageDesignTokensApplied
+    complement but do not fully cover (that suite only asserts computed
+    color for .article__meta, not .article__title/.article__content, and
+    can't tell `var(--color-text-primary)` apart from
+    `var(--color-text-secondary)` since both currently resolve to the same
+    hex value in design-tokens.css).
+    """
+
+    def test_design_tokens_stylesheet_link_present_between_title_and_style(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+
+        link_tag = '<link rel="stylesheet" href="/design-tokens.css">'
+        assert link_tag in body
+        title_idx = body.index("<title>T</title>")
+        link_idx = body.index(link_tag)
+        style_idx = body.index("<style>")
+        assert title_idx < link_idx < style_idx
+
+    def test_title_and_content_use_text_primary_color_token(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+
+        assert (
+            '.article__title { font-size: 1.5rem; margin: 0 0 var(--space-2); '
+            'color: var(--color-text-primary); text-align: center; }'
+        ) in body
+        assert (
+            '.article__content { white-space: pre-wrap; '
+            'color: var(--color-text-primary); text-align: left; }'
+        ) in body
+
+    def test_meta_uses_text_secondary_color_token_not_hardcoded_hex(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+
+        assert "var(--color-text-secondary)" in body
+        assert "#666" not in body
+
+    def test_body_uses_font_family_base_token_not_hardcoded_stack(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+
+        assert "font-family: var(--font-family-base);" in body
+        assert "system-ui" not in body
+
+    def test_title_and_meta_centered_content_left_aligned(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+
+        assert '.article__title { font-size: 1.5rem; margin: 0 0 var(--space-2); color: var(--color-text-primary); text-align: center; }' in body
+        assert '.article__meta { display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: var(--space-4); text-align: center; }' in body
+        assert '.article__content { white-space: pre-wrap; color: var(--color-text-primary); text-align: left; }' in body
+
+
 class TestArticleDetailPageEscaping:
     """Scenario: 文章內容含特殊字元時正確逸出 -> 不造成標籤注入"""
 
