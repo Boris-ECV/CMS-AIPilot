@@ -524,6 +524,56 @@ Scenario: 新增真實瀏覽器樣式驗證
 - 工單依賴：blocked by SDLCAIP1-30（已 DONE）
 - 外部依賴：無
 
+## SDLCAIP1-36 — 前台搜尋頁 UI 套用設計規範
+
+**使用者故事:** As a 前台訪客, I want 搜尋頁視覺符合 docs/design-system.md 定義的規範, so that 前台網站呈現一致、有質感的編輯感風格。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 頁面引入 design-tokens.css
+  Given _generate_and_upload_search_page() 產生的 search.html 目前 <head> 未引用 design-tokens.css
+  When 套用本 Story
+  Then <head> 新增 <link rel="stylesheet" href="/design-tokens.css">（絕對路徑，比照 SDLCAIP1-34/35 慣例）
+
+Scenario: 搜尋輸入框樣式改用 token
+  Given _SEARCH_PAGE_STYLE 目前 .search-form__input 的 padding/font-size/margin 為寫死數值（8px/12px、1rem、16px），無色彩/邊框宣告
+  When 套用本 Story
+  Then 寫死的間距數值改為對應 var(--space-*)（數值不變）；若新增任何色彩/邊框宣告需改用 var(--color-*)
+
+Scenario: 搜尋結果列表項目套用設計規範樣式
+  Given search.html 目前完全沒有針對 .article-list__item / .article-list__link（搜尋結果 JS 動態產生時重用的既有 class 名稱）的樣式宣告——這兩個 class 定義於 _LIST_PAGE_STYLE，但該常數目前未被組進 search.html 的 <style> 標籤，故搜尋結果目前呈現瀏覽器預設樣式（無設計規範套用，也無邊框可言）
+  When 套用本 Story，為 .article-list__item / .article-list__link 在 search.html 情境下新增樣式（實作方式——新增專屬常數或 scoped 選擇器——由 Designing 階段決定，不得依賴 SDLCAIP1-35 對 _LIST_PAGE_STYLE 的改動，本票須可獨立完成與部署）
+  Then 色彩改用 var(--color-text-primary)，字體改用 var(--font-family-base)；不使用 border/box-shadow/background-color；項目間距靠 var(--space-*) 留白分隔；標題（.article-list__link）置中（比照 SDLCAIP1-35 對同一 class 的置中決策）
+
+Scenario: 搜尋結果不渲染摘要／內文片段（釐清舊草稿的錯誤假設）
+  Given _SEARCH_PAGE_SCRIPT 目前只將 item.content 用於比對，從未渲染到 DOM；每筆結果只有一個 <a> 標題連結
+  When 套用本 Story
+  Then 不新增摘要/內文片段渲染（屬新功能，範圍外，比照 SDLCAIP1-35 同一排除項）；驗收僅涵蓋標題連結本身的樣式
+
+Scenario: 既有 vanilla JS 比對邏輯與無結果狀態不受影響
+  Given SDLCAIP1-26/27/28 已實作的前端子字串比對邏輯與 #search-empty 無結果訊息
+  When 套用樣式後執行搜尋（含有結果與無結果情境）
+  Then 比對邏輯與 DOM 結構（element id/既有 class 名稱）不變，僅樣式變更；#search-empty 訊息不套用 --color-error（非表單驗證錯誤，維持一般文字樣式）
+
+Scenario: 既有測試通過 + 新增 token 驗證 e2e 測試
+  Given 既有 tests/test_search_page.py、tests/e2e/test_search_page_e2e.py
+  When 套用樣式後執行
+  Then 既有測試全數通過；另需新增一個 e2e 測試檔（比照 tests/e2e/test_article_detail_page_e2e.py 於 SDLCAIP1-34 的 page.route + page.goto 攔截模式，因 page.set_content 無法讓 <link> 實際生效），斷言 .search-form__input／.article-list__link 的 computed color/font-family 為 token 值、.article-list__item 的 border/box-shadow/background 為 none/0px/transparent、.article-list__link 的 text-align 為 center
+```
+
+**不在此範圍:**
+- 不含搜尋比對邏輯、索引產生邏輯變更，僅視覺樣式
+- 不含斷點值或版面結構重新設計
+- 不新增摘要/內文片段渲染到搜尋結果（目前只渲染標題，新增屬新功能——比照 SDLCAIP1-35 同一排除項）
+- 不修改共用的 `_LIST_PAGE_STYLE`（SDLCAIP1-35 範圍）或 `_ARTICLE_PAGE_STYLE` 本體；本票對 `.article-list__item`/`.article-list__link` 的樣式套用範圍限定在 search.html 這一個頁面
+- 不套用 `--color-error` 於 #search-empty 無結果訊息（該訊息非表單驗證錯誤情境）
+
+**依賴:**
+- 工單依賴：blocked by SDLCAIP1-30（已 DONE，提供 design-tokens.css）
+- **不** blocked by SDLCAIP1-35（前台首頁列表頁）——雖然搜尋結果重用 `.article-list__item`/`.article-list__link` class 名稱，但 search.html 目前未組入 `_LIST_PAGE_STYLE`，兩票技術上互不影響，可獨立完成
+- 外部依賴：無
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
