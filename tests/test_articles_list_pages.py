@@ -113,6 +113,29 @@ class TestRenderListPageHtml:
         assert 'href="/index.html"' in body
         assert 'href="/page/3.html"' in body
 
+    def test_head_links_design_tokens_stylesheet(self):
+        """SDLCAIP1-35 AC1: <head> references the shared design-tokens.css
+        stylesheet so the browser applies token-based colors/fonts."""
+        body = _render_list_page_html([], page=1, total_pages=1)
+        head, _, rest = body.partition("</head>")
+        assert '<link rel="stylesheet" href="/design-tokens.css">' in head
+        assert rest.startswith("<body>")
+
+    def test_list_item_style_has_no_border_shadow_or_background(self):
+        """SDLCAIP1-35 AC2: .article-list__item separation is via spacing
+        tokens only, not border/box-shadow/background-color. This is a fast
+        string-level guard for the same property e2e already verifies via
+        computed style in tests/e2e/test_articles_list_page_styling_e2e.py."""
+        from cms_aipilot.main import _LIST_PAGE_STYLE
+
+        item_rule_start = _LIST_PAGE_STYLE.index(".article-list__item")
+        item_rule_end = _LIST_PAGE_STYLE.index("}", item_rule_start)
+        item_rule = _LIST_PAGE_STYLE[item_rule_start:item_rule_end]
+        assert "border-bottom" not in item_rule
+        assert "box-shadow" not in item_rule
+        assert "background-color" not in item_rule
+        assert "background:" not in item_rule
+
 
 class TestGenerateAndUploadListPages:
     """Unit tests for the scan/sort/paginate/upload orchestration."""
