@@ -425,10 +425,19 @@ SEARCH_PAGE_KEY = "search.html"
 _SEARCH_PAGE_STYLE = """
     .search-form__input {
       width: 100%;
-      padding: 8px 12px;
+      padding: var(--space-2) var(--space-3);
       font-size: 1rem;
       box-sizing: border-box;
-      margin-bottom: 16px;
+      margin-bottom: var(--space-4);
+    }
+    .article-list__item {
+      padding: var(--space-3) 0;
+      text-align: center;
+    }
+    .article-list__link {
+      color: var(--color-text-primary);
+      font-size: 1.125rem;
+      text-decoration: none;
     }
     """
 
@@ -492,6 +501,7 @@ def _generate_and_upload_search_page() -> None:
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         "<title>搜尋文章</title>"
         f"<style>{_ARTICLE_PAGE_STYLE}{_SEARCH_PAGE_STYLE}</style>"
+        '<link rel="stylesheet" href="/design-tokens.css">'
         "</head>"
         "<body>"
         '<form class="search-form" id="search-form" onsubmit="return false;">'
