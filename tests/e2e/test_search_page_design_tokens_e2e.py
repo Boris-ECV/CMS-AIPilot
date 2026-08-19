@@ -17,18 +17,49 @@ content (read from `cms_aipilot.main._DESIGN_TOKENS_PATH` -- not a
 hand-copied literal, so this test can't silently drift out of sync with the
 real file).
 
-Reuses `SEARCH_PAGE_URL` and `_generated_html` from `test_search_page_e2e.py`
-(same module, imported directly) instead of redefining them.
+`SEARCH_INDEX`/`SEARCH_PAGE_URL`/`_generated_html` are defined locally
+below, mirroring `test_search_page_e2e.py`'s own definitions, rather than
+importing them cross-file -- this repo has no `tests/__init__.py`, so a
+`from tests.e2e.test_search_page_e2e import ...` package-style import fails
+at collection time (`ModuleNotFoundError: No module named 'tests'`) under
+pytest's default rootless import mode, which interrupts collection of the
+*entire* suite, not just this file.
 """
 
 from __future__ import annotations
 
 import json
+from unittest.mock import MagicMock, patch
 
 from playwright.sync_api import Page, Route
 
-from cms_aipilot.main import _DESIGN_TOKENS_PATH
-from tests.e2e.test_search_page_e2e import SEARCH_INDEX, SEARCH_PAGE_URL, _generated_html
+from cms_aipilot.main import _DESIGN_TOKENS_PATH, _generate_and_upload_search_page
+
+SEARCH_INDEX = [
+    {
+        "id": "a1",
+        "title": "Sunrise over the mountains",
+        "content": "A quiet plain-text article body about hiking trails.",
+        "published_at": "2026-01-01T00:00:00",
+    },
+    {
+        "id": "a2",
+        "title": "Unrelated headline",
+        "content": "This body mentions a Keyword somewhere in the middle of it.",
+        "published_at": "2026-01-02T00:00:00",
+    },
+]
+
+
+def _generated_html(monkeypatch) -> str:
+    monkeypatch.setenv("ARTICLES_STATIC_BUCKET_NAME", "test-articles-static-bucket")
+    fake_s3 = MagicMock()
+    with patch("cms_aipilot.main.get_s3_client", return_value=fake_s3):
+        _generate_and_upload_search_page()
+    return fake_s3.put_object.call_args.kwargs["Body"]
+
+
+SEARCH_PAGE_URL = "https://e2e-search-page.example/search.html"
 
 
 def _load_with_tokens(page: Page, monkeypatch, index_data: list[dict]) -> None:
