@@ -169,6 +169,27 @@ class TestArticleDetailPageDesignTokensMarkup:
         assert '.article__content { white-space: pre-wrap; color: var(--color-text-primary); text-align: left; }' in body
 
 
+class TestArticleDetailPageBackToListLink:
+    """Scenario (SDLCAIP1-40): 文章詳細頁顯示返回首頁的連結 -> 頁面上有一個連到
+    "/" 的連結，文字清楚可辨識；且與既有「搜尋文章」連結並存，不互相取代。
+    """
+
+    def test_back_to_list_link_present(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+        assert '<a href="/">回文章列表</a>' in body
+
+    def test_back_to_list_link_coexists_with_search_link(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+        assert '<a href="/">回文章列表</a>' in body
+        assert '<a href="/search.html">搜尋文章</a>' in body
+
+
 class TestArticleDetailPageEscaping:
     """Scenario: 文章內容含特殊字元時正確逸出 -> 不造成標籤注入"""
 
