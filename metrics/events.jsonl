@@ -386,6 +386,24 @@
 {"ts": "2026-08-17T15:08:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Awaiting Gate", "to": "Ready", "note": "G1b already GATE APPROVED in prior session (comment 43112); prior session ended before transitioning. Recovered at bootstrap."}}
 {"ts": "2026-08-17T15:09:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-34", "agent": "orch-20260817-boot1", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-17T15:09:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "gate_review", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Designing"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "gate_review", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Designing"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "gate_review", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"gate": "G1", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:37:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Designing"}}
+{"ts": "2026-08-25T03:40:16Z", "event": "gate_review", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "criteria_pass_awaiting_human"}}
+{"ts": "2026-08-25T03:40:16Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-25T03:40:20Z", "event": "gate_review", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "criteria_pass_awaiting_human"}}
+{"ts": "2026-08-25T03:40:20Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-25T03:40:23Z", "event": "gate_review", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "criteria_pass_awaiting_human"}}
+{"ts": "2026-08-25T03:40:23Z", "event": "stage_transition", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"from": "Designing", "to": "Awaiting Gate"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "gate_review", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Ready"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "gate_review", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Ready"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "gate_review", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"gate": "G1b", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-40", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Ready"}}
 {"ts": "2026-08-25T03:44:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-25T03:44:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "In Progress", "to": "Testing"}}

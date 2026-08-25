@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArticlesList } from "./ArticlesList";
 import { setStoredToken, getStoredToken } from "../auth/token";
-import { ARTICLES_PATH, LOGIN_PATH } from "../routes";
+import { ARTICLES_PATH, ARTICLE_NEW_PATH, LOGIN_PATH } from "../routes";
 
 function renderArticlesList() {
   return render(
@@ -12,6 +12,7 @@ function renderArticlesList() {
       <Routes>
         <Route path={LOGIN_PATH} element={<h1>登入</h1>} />
         <Route path={ARTICLES_PATH} element={<ArticlesList />} />
+        <Route path={ARTICLE_NEW_PATH} element={<h1>新增文章表單</h1>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -164,6 +165,52 @@ describe("ArticlesList", () => {
 
     const deleteButton = screen.getByTestId("delete-article-42");
     expect(deleteButton.tagName).toBe("BUTTON");
+  });
+
+  describe("新增文章入口(SDLCAIP1-39)", () => {
+    it("AC1/AC2: 有資料時顯示「新增文章」入口,點擊後導向 /articles/new", async () => {
+      const items = [{ id: "1", title: "第一篇文章", published_at: "2026-02-01T00:00:00" }];
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => makeListResponse({ items, total: 1, total_pages: 1 }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      renderArticlesList();
+
+      await waitFor(() => {
+        expect(screen.getByText("第一篇文章")).toBeInTheDocument();
+      });
+
+      const newArticleLink = screen.getByRole("link", { name: "新增文章" });
+      expect(newArticleLink).toHaveAttribute("href", "/articles/new");
+
+      const user = userEvent.setup();
+      await user.click(newArticleLink);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: "新增文章表單" })).toBeInTheDocument();
+      });
+    });
+
+    it("AC3: 空列表狀態下「新增文章」入口依然可見可點擊", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => makeListResponse(),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      renderArticlesList();
+
+      await waitFor(() => {
+        expect(screen.getByText("尚無文章")).toBeInTheDocument();
+      });
+
+      const newArticleLink = screen.getByRole("link", { name: "新增文章" });
+      expect(newArticleLink).toHaveAttribute("href", "/articles/new");
+    });
   });
 
   describe("刪除確認互動(SDLCAIP1-14)", () => {

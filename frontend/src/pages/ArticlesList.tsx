@@ -4,7 +4,7 @@ import { deleteArticle, listArticles } from "../api/articles";
 import type { ArticleSummary } from "../api/articles";
 import { ApiError } from "../api/client";
 import { useHandleUnauthorized } from "../auth/useHandleUnauthorized";
-import { editPath } from "../routes";
+import { ARTICLE_NEW_PATH, editPath } from "../routes";
 import "../styles/design-tokens.css";
 import "./ArticlesList.css";
 
@@ -86,9 +86,21 @@ export function ArticlesList() {
     return <p role="alert">{error}</p>;
   }
 
+  const toolbar = (
+    <div className="articles-list__toolbar">
+      <Link
+        to={ARTICLE_NEW_PATH}
+        className="articles-list__button articles-list__button--secondary"
+      >
+        新增文章
+      </Link>
+    </div>
+  );
+
   if (articles.length === 0) {
     return (
       <div>
+        {toolbar}
         {notice && <p role="status">{notice}</p>}
         <p>{EMPTY_STATE_MESSAGE}</p>
       </div>
@@ -97,6 +109,7 @@ export function ArticlesList() {
 
   return (
     <div>
+      {toolbar}
       {notice && <p role="status">{notice}</p>}
       {deleteError && <p role="alert">{deleteError}</p>}
       <table className="articles-list__table">
