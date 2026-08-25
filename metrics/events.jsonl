@@ -386,3 +386,13 @@
 {"ts": "2026-08-17T15:08:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Awaiting Gate", "to": "Ready", "note": "G1b already GATE APPROVED in prior session (comment 43112); prior session ended before transitioning. Recovered at bootstrap."}}
 {"ts": "2026-08-17T15:09:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-34", "agent": "orch-20260817-boot1", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-17T15:09:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-25T03:44:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-25T03:44:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "In Progress", "to": "Testing"}}
+{"ts": "2026-08-25T03:50:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "In Progress", "to": "Testing"}}
+{"ts": "2026-08-25T03:58:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Testing", "to": "In Review", "note": "PR #180"}}
+{"ts": "2026-08-25T03:58:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Testing", "to": "In Review", "note": "PR #181"}}
+{"ts": "2026-08-25T04:03:00Z", "event": "gate_review", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"gate": "G2", "mode": "manual", "result": "criteria_pass_awaiting_human"}}
+{"ts": "2026-08-25T04:03:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "In Review", "to": "Awaiting Gate"}}
+{"ts": "2026-08-25T04:03:00Z", "event": "gate_review", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"gate": "G2", "mode": "manual", "result": "criteria_pass_awaiting_human"}}
+{"ts": "2026-08-25T04:03:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "In Review", "to": "Awaiting Gate"}}
