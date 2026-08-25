@@ -215,6 +215,30 @@ class TestArticleDetailPageEscapingRendersAsText:
         assert page.get_by_text("plain & text").is_visible()
 
 
+class TestArticleDetailPageBackToListLinkRendersInBrowser:
+    """Scenario (SDLCAIP1-40): 文章詳細頁顯示返回首頁的連結 -> 頁面上有一個連到
+    "/" 的連結、文字清楚可辨識，且與既有「搜尋文章」連結並存、不互相取代。"""
+
+    def test_back_to_list_link_visible_and_coexists_with_search_link(
+        self, page: Page, monkeypatch
+    ) -> None:
+        article = Article(
+            id="a1",
+            title="E2E Article Title",
+            content="E2E full plain-text article body.",
+            published_at="2026-08-10T09:30:00",
+        )
+        _load_article_page(page, monkeypatch, article)
+
+        back_to_list_link = page.get_by_role("link", name="回文章列表")
+        search_link = page.get_by_role("link", name="搜尋文章")
+
+        assert back_to_list_link.is_visible()
+        assert back_to_list_link.get_attribute("href") == "/"
+        assert search_link.is_visible()
+        assert search_link.get_attribute("href") == "/search.html"
+
+
 class TestArticleDetailPageDesignTokensApplied:
     """Scenario: 文章詳細頁套用 design-tokens.css 色彩/字體/對齊規範（SDLCAIP1-34）"""
 
