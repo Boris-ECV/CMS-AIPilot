@@ -215,6 +215,7 @@ def _generate_and_upload_static_page(article: Article) -> None:
         f'<h1 class="article__title">{title}</h1>'
         f'<time class="article__meta" datetime="{published_at_iso}">{published_at_display}</time>'
         f'<div class="article__content">{content}</div>'
+        '<a href="/">回文章列表</a>'
         '<a href="/search.html">搜尋文章</a>'
         "</article></body></html>"
     )
