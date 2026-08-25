@@ -61,7 +61,29 @@ report to the human supervisor.
    landed on local `main` out of habit after several branch/PR cycles;
    caught before push, but required `git branch` + `git reset --hard
    origin/main` to undo.
-5. **When requirements are ambiguous, create a HUMAN-INPUT ticket. Never
+4c. **Rule 4's "never merge a PR that has not passed its gate" is about
+   product Story PRs.** It does not require waiting on human approval
+   for a narrower category: routine housekeeping PRs the orchestrator
+   itself generates as a side effect of rule 4b (metrics events, PRD
+   updates, design-doc commits, session/retro reports) — these were
+   never gated deliverables in the first place, so there is no gate to
+   wait for. **Self-merge (squash) such a PR without asking a human,
+   but only when ALL of these hold:**
+   - every changed file is under `metrics/`, or is `docs/PRD.md`,
+     `docs/design/*.md`, `docs/session-report-*.md`, or
+     `metrics/session-report-*.md`
+   - **never** self-merge a PR touching `.claude/`, `config/`,
+     `templates/`, `docs/00-08` (framework mechanism — always
+     human-reviewed, that's how this framework's own rules evolve), or
+     any product source/test/infra path
+   - CI is green
+   - the PR is not itself a product Story's deliverable (that still
+     needs its G1/G1b/G2 gate + human approval, unchanged)
+
+   After self-merging, note it in the ticket's next comment or a
+   metrics event — self-merging quietly is still a P1/P6 violation
+   (Jira/git history is how a human reconstructs what happened; don't
+   make them guess which PRs a session merged on its own).
    fill gaps with assumptions.**
 6. **Follow the lock protocol (docs/01 §4) before working on any ticket.**
 7. **Emit metrics events** (docs/07 schema) to `metrics/events.jsonl` for
@@ -142,6 +164,9 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
   directory causes git checkout races between concurrent subagents —
   observed failure mode: one subagent's uncommitted changes silently
   overwritten by another subagent's branch checkout in the same tree.
+- After a parallel delegation's ticket reaches Done (merged) or is
+  abandoned, remove its worktree (`git worktree remove <path>`) —
+  don't leave stale worktrees accumulating on disk.
 - **Git worktree isolation does NOT isolate a shared Python virtualenv/
   interpreter.** When multiple developer/tester subagents run in
   parallel worktrees against the same project, `pip install -e ".[dev]"`
@@ -162,9 +187,6 @@ Do NOT read docs/03/04/05/07 at bootstrap; read them only when needed.
   and rerun after a fresh `pip install -e` before trusting a "FAIL".
   A per-worktree virtualenv would remove this class of failure
   entirely; until this project has one, this is a known sharp edge.
-- After a parallel delegation's ticket reaches Done (merged) or is
-  abandoned, remove its worktree (`git worktree remove <path>`) —
-  don't leave stale worktrees accumulating on disk.
 - **Sequential (one-ticket-at-a-time) delegation still needs care in
   the shared checkout — it is not exempt from git-state races.** Two
   confirmed failure modes from this framework's pilot, neither

@@ -169,6 +169,42 @@ class TestArticleDetailPageDesignTokensMarkup:
         assert '.article__content { white-space: pre-wrap; color: var(--color-text-primary); text-align: left; }' in body
 
 
+class TestArticleDetailPageBackToListLink:
+    """Scenario (SDLCAIP1-40): 文章詳細頁顯示返回首頁的連結 -> 頁面上有一個連到
+    "/" 的連結，文字清楚可辨識；且與既有「搜尋文章」連結並存，不互相取代。
+    """
+
+    def test_back_to_list_link_present(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+        assert '<a href="/">回文章列表</a>' in body
+
+    def test_back_to_list_link_coexists_with_search_link(self, mock_s3):
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+        assert '<a href="/">回文章列表</a>' in body
+        assert '<a href="/search.html">搜尋文章</a>' in body
+
+    def test_back_to_list_link_uses_same_plain_style_as_search_link(self, mock_s3):
+        """Scenario: 對齊與樣式套用既有設計規範 -> 不另外發明新樣式（無 class/style
+        屬性，與既有「搜尋文章」連結一致，皆依賴 design-system.md 的底線連結
+        樣式，不用色塊或按鈕感包裝）。"""
+        article = Article(
+            id="a1", title="T", content="C", published_at="2026-01-01T00:00:00"
+        )
+        body = _generated_body(mock_s3, article)
+        assert '<a href="/">回文章列表</a>' in body
+        assert '<a href="/search.html">搜尋文章</a>' in body
+        # Neither link carries a class/style attribute -- both rely on the
+        # browser's default underlined-link rendering (no bespoke styling).
+        assert '<a class=' not in body
+        assert '<a style=' not in body
+
+
 class TestArticleDetailPageEscaping:
     """Scenario: 文章內容含特殊字元時正確逸出 -> 不造成標籤注入"""
 
