@@ -574,6 +574,112 @@ Scenario: 既有測試通過 + 新增 token 驗證 e2e 測試
 - **不** blocked by SDLCAIP1-35（前台首頁列表頁）——雖然搜尋結果重用 `.article-list__item`/`.article-list__link` class 名稱，但 search.html 目前未組入 `_LIST_PAGE_STYLE`，兩票技術上互不影響，可獨立完成
 - 外部依賴：無
 
+## SDLCAIP1-38 — 後台根路徑無畫面，未導向登入頁
+
+**使用者故事:** As the 後台唯一管理者, I want 直接開啟後台網址（根路徑）就能被導向到正確的畫面（未登入導去登入頁、已登入導去文章列表）, so that 我不需要記住或手動輸入 `/login` 這個確切路徑。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 未登入時開啟根路徑導向登入頁
+  Given 瀏覽器沒有已儲存的有效 token
+  When 開啟網站根路徑 "/"
+  Then 被導向到 "/login"，顯示登入表單
+
+Scenario: 已登入時開啟根路徑導向文章列表
+  Given 瀏覽器已有有效 token（比照 RequireAuth 現有的 token 存在判斷邏輯）
+  When 開啟網站根路徑 "/"
+  Then 被導向到 "/articles"，顯示文章列表
+
+Scenario: 既有路由與測試不受影響
+  Given 既有的 /login、/articles、/articles/new、/articles/:id/edit 路由與其測試
+  When 新增根路徑導向邏輯後執行 npm run test
+  Then 全數通過，不影響既有行為
+```
+
+**不在此範圍:**
+- 不含登入頁、文章列表頁本身的行為或樣式變更
+- 不含「記住我」、自動登入等額外機制
+- 不含後端 API 變更
+
+**依賴:**
+- 工單依賴：無
+- 外部依賴：無
+
+## SDLCAIP1-39 — 後台文章列表頁缺少「新增文章」入口
+
+**使用者故事:** As the 後台唯一管理者, I want 在文章列表頁上看到「新增文章」的按鈕或連結, so that 我不需要手動輸入 `/articles/new` 網址才能開始新增文章。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 列表頁顯示新增文章入口
+  Given 已登入並開啟文章列表頁（/articles）
+  When 頁面渲染完成
+  Then 頁面上有一個文字清楚可辨識（如「新增文章」）的按鈕或連結
+
+Scenario: 點擊後正確導向新增表單
+  Given 文章列表頁已顯示「新增文章」入口
+  When 點擊該入口
+  Then 導向 /articles/new，顯示空白的新增文章表單
+
+Scenario: 空列表狀態下入口依然存在
+  Given 目前沒有任何文章（列表顯示「尚無文章」空狀態）
+  When 頁面渲染完成
+  Then 「新增文章」入口依然可見可點擊，不因空列表而消失
+
+Scenario: 既有測試不受影響
+  Given 既有 ArticlesList 相關測試
+  When 新增此入口後執行 npm run test
+  Then 全數通過
+```
+
+**不在此範圍:**
+- 不含新增文章表單本身的欄位、驗證邏輯或送出行為變更
+- 不含按鈕樣式的系統化元件抽象化（沿用 docs/design-system.md 既有的按鈕規則即可）
+- 不含列表頁其餘版面重新設計
+
+**依賴:**
+- 工單依賴：無
+- 外部依賴：無
+
+## SDLCAIP1-40 — 前台文章詳細頁缺少返回首頁列表的連結
+
+**使用者故事:** As a 前台訪客, I want 在文章詳細頁上有一個連結可以回到首頁文章列表, so that 我讀完一篇文章後能繼續瀏覽其他文章，不需要依賴瀏覽器上一頁。
+
+**驗收條件 (Gherkin):**
+
+```gherkin
+Scenario: 文章詳細頁顯示返回首頁的連結
+  Given 一篇已發布文章的靜態詳細頁
+  When 頁面產生
+  Then 頁面上有一個連到 "/" 的連結，文字清楚可辨識（如「回文章列表」或「首頁」）
+
+Scenario: 與既有「搜尋文章」連結並存
+  Given 詳細頁已有的「搜尋文章」連結
+  When 新增回首頁列表的連結
+  Then 兩個連結同時存在，不互相取代
+
+Scenario: 對齊與樣式套用既有設計規範
+  Given docs/design-system.md 既有的連結樣式規則（底線樣式）
+  When 新增此連結
+  Then 樣式與既有「搜尋文章」連結一致，不另外發明新樣式
+
+Scenario: 既有測試不受影響
+  Given 既有 tests/test_article_detail_page.py 與 tests/e2e/test_article_detail_page_e2e.py
+  When 新增此連結後執行測試
+  Then 全數通過
+```
+
+**不在此範圍:**
+- 不含首頁列表頁本身的邏輯或樣式變更
+- 不含分頁狀態記憶（例如讀者原本在第 2 頁點進文章，回去後停在第幾頁）——一律連回首頁第 1 頁即可
+- 不含相關文章推薦等延伸功能
+
+**依賴:**
+- 工單依賴：無
+- 外部依賴：無
+
 ## 待補(reporter 下次執行時處理)
 
 以下 Story 在本文件建立前就已通過 G1,尚未補進本文件——下次 session 的 reporter
