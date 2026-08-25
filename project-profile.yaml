@@ -53,6 +53,18 @@ conventions:
     （`--video=retain-on-failure`）。無論成功失敗，每次 GitHub Actions
     run 的 Artifacts 都會有 `playwright-e2e-artifacts` 可下載查看，作為
     測試成功當下畫面的永久記錄，不用只靠文字結果推測畫面長什麼樣。
+    重要陷阱：`tests/e2e/` 的 `frontend_preview_server` fixture 是對
+    `frontend/dist`（已建置產物，非原始碼）跑 `vite preview`——CI 每次
+    都會重新 `npm run build`（見 .github/workflows/ci.yml），本地執行
+    `pytest` 卻不會自動重建。若在本機合併/pull 到一個有變更
+    `frontend/src/` 的分支後直接跑 `pytest`，`tests/e2e/` 會用「合併前」
+    的舊建置產物跑測試，导致明明程式碼已修好卻仍然測試失敗（表現為
+    找不到元素/斷言失敗，且錯誤訊息中的中文字串可能因終端機編碼顯示成
+    亂碼——這只是顯示問題，不代表程式碼真的有編碼錯誤，設定
+    `PYTHONUTF8=1` 可確認)。**在本機對任何觸及 `frontend/` 的分支跑
+    `pytest`（尤其是合併其他 frontend 分支之後）之前，先手動
+    `cd frontend && npm run build` 一次**，否則測試失敗前應先重建再重跑
+    確認，不要直接判定為回歸。
 
 structure:
   src: "src/cms_aipilot/"
