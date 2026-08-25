@@ -386,3 +386,7 @@
 {"ts": "2026-08-17T15:08:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Awaiting Gate", "to": "Ready", "note": "G1b already GATE APPROVED in prior session (comment 43112); prior session ended before transitioning. Recovered at bootstrap."}}
 {"ts": "2026-08-17T15:09:00Z", "event": "stage_transition", "ticket": "SDLCAIP1-34", "agent": "orch-20260817-boot1", "data": {"from": "Ready", "to": "In Progress"}}
 {"ts": "2026-08-17T15:09:30Z", "event": "stage_transition", "ticket": "SDLCAIP1-35", "agent": "orch-20260817-boot2", "data": {"from": "Ready", "to": "In Progress"}}
+{"ts": "2026-08-25T05:08:22Z", "event": "gate_review", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"gate": "G2", "mode": "manual", "result": "approved", "note": "human comment was 'GATE APPROVE' (typo), treated as approval"}}
+{"ts": "2026-08-25T05:08:22Z", "event": "stage_transition", "ticket": "SDLCAIP1-38", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Done", "note": "PR #180 squash-merged"}}
+{"ts": "2026-08-25T05:08:26Z", "event": "gate_review", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"gate": "G2", "mode": "manual", "result": "approved"}}
+{"ts": "2026-08-25T05:08:26Z", "event": "stage_transition", "ticket": "SDLCAIP1-39", "agent": "orch-20260825-b3q7", "data": {"from": "Awaiting Gate", "to": "Done", "note": "PR #181 squash-merged"}}
