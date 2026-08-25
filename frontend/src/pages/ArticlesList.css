@@ -47,3 +47,7 @@
   outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
 }
+
+.articles-list__toolbar {
+  margin-bottom: var(--space-3);
+}
